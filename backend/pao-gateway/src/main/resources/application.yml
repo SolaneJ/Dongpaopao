@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: pao-gateway
+  cloud:
+    nacos:
+      server-addr: nacos:8848
+  profiles:
+    active:
+      - dev
+
+server:
+  port: 8080

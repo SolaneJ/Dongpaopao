@@ -1,0 +1,9 @@
+erDiagram
+    t_user ||--o{ t_order : "创建"
+    t_user ||--o{ t_dispatcher_info : "成为"
+    t_school ||--o{ t_user : "包含"
+    t_school ||--o{ t_order : "关联"
+    t_order ||--o{ t_order_log : "产生"
+    t_order ||--o{ t_payment_record : "关联"
+    t_order ||--o{ t_cross_school_order : "可能是"
+    t_school }|--|{ t_school_relation : "关系"
