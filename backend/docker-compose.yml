@@ -60,6 +60,18 @@ services:
       - "8080:8080"
     container_name: pao-gateway
 
+  # 订单服务
+  pao-order-service:
+    build: ./pao-service/pao-order-service
+    networks:
+      - pao_network
+    depends_on:
+      pao-nacos:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    container_name: pao-order-service
+
 # 自定义网络名，让容器间可以通过服务名互相访问
 networks:
   pao_network:
