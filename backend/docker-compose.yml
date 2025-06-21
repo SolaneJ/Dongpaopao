@@ -60,6 +60,18 @@ services:
       - "8080:8080"
     container_name: pao-gateway
 
+  # 用户服务
+  pao-user-service:
+    build: ./pao-service/pao-user-service
+    networks:
+      - pao_network
+    depends_on:
+      pao-nacos:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    container_name: pao-user-service
+
   # 订单服务
   pao-order-service:
     build: ./pao-service/pao-order-service
