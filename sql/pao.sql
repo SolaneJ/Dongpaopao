@@ -8,6 +8,7 @@ CREATE TABLE `user` (
   `avatar_url` varchar(255) DEFAULT NULL COMMENT '头像URL',
   `phone` varchar(20) DEFAULT NULL COMMENT '手机号',
   `like_count` int DEFAULT '0' COMMENT '被点赞数',
+  `dislike_count` int DEFAULT '0' COMMENT '被点踩数',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
