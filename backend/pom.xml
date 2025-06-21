@@ -11,6 +11,7 @@
     <modules>
         <module>pao-gateway</module>
         <module>pao-service</module>
+        <module>pao-common</module>
     </modules>
 
     <properties>

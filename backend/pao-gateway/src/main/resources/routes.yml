@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: pao-order-service
+          uri: lb://pao-order-service
+          predicates:
+            - Path=/order/**
+          filters:
+            - StripPrefix=1
