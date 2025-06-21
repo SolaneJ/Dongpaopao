@@ -1,0 +1,38 @@
+<template>
+	<view>
+		<image class="logo" src="/static/logo.png"></image>
+		<view class="text-area">
+			<text class="title">{{title}}</text>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				title: 'Hello'
+			}
+		},
+		onLoad() {
+
+		},
+		methods: {
+
+		}
+	}
+</script>
+
+<style>
+	.logo {
+		height: 100px;
+		width: 100px;
+		margin: 100px auto 25px auto;
+	}
+
+	.title {
+		font-size: 18px;
+		color: #8f8f94;
+    text-align: center;
+	}
+</style>
