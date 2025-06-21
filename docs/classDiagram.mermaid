@@ -1,0 +1,74 @@
+classDiagram
+%% 1. 用户核心类
+    class User {
+        +id: Long
+        +openid: String
+        +nickname: String
+        +likeCount: Integer
+        +addresses: List~Address~
+        +createdOrders: List~Order~
+        +acceptedOrders: List~Order~
+        +reviews: List~Review~
+        +blacklists: List~Blacklist~
+    }
+
+%% 2. 地址簿
+    class Address {
+        +id: Long
+        +user: User
+        +contactName: String
+        +contactPhone: String
+        +location: String
+        +detail: String
+        +isDefault: Boolean
+    }
+
+%% 3. 订单
+    class Order {
+        +id: Long
+        +status: String
+        +amount: BigDecimal
+        +creator: User
+        +runner: User
+        +pickupAddress: Address
+        +deliveryAddress: Address
+        +payment: Payment
+        +review: Review
+    }
+
+%% 4. 支付记录
+    class Payment {
+        +id: Long
+        +transactionId: String
+        +status: String
+        +amount: BigDecimal
+    }
+
+%% 5. 评价
+    class Review {
+        +id: Long
+        +rating: Integer
+        +comment: String
+        +reviewer: User
+        +order: Order
+    }
+
+%% 6. 黑名单
+    class Blacklist {
+        +id: Long
+        +blocker: User
+        +blockedUser: User
+        +createTime: LocalDateTime
+    }
+
+%% 关系定义
+    User "1" *-- "0..*" Address : "管理"
+    User "1" --> "0..*" Order : "创建"
+    User "1" --> "0..*" Order : "接单"
+    Order "1" *-- "1" Payment : "关联"
+    User "1" --> "0..*" Review : "发表"
+    Order "1" --> "1" Review : "拥有"
+    User "1" --> "0..*" Blacklist : "拉黑"
+    Blacklist "1" --> "1" User : "被拉黑"
+    Order "1" --> "1" Address : "取件地址"
+    Order "1" --> "1" Address : "送达地址"
