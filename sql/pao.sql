@@ -134,3 +134,40 @@ CREATE TABLE `blacklist` (
 INSERT INTO `blacklist` (`blocker_id`, `blocked_user_id`) VALUES
 (1, 3),
 (2, 3);
+
+-- 7. 消息表（支持多种消息类型）
+CREATE TABLE `message` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '雪花ID',
+  `sender_id` bigint NOT NULL COMMENT '发送者ID',
+  `receiver_id` bigint NOT NULL COMMENT '接收者ID',
+  `msg_type` enum('TEXT','IMAGE','ORDER','SYSTEM') NOT NULL DEFAULT 'TEXT',
+  `content` text NOT NULL COMMENT '加密内容或资源URL',
+  `extras` json DEFAULT NULL COMMENT '扩展数据',
+  `order_id` bigint DEFAULT NULL COMMENT '关联订单ID',
+  `is_read` tinyint(1) DEFAULT '0' COMMENT '是否已读',
+  `created_at` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '精确到毫秒',
+  PRIMARY KEY (`id`),
+  KEY `idx_sender` (`sender_id`),
+  KEY `idx_receiver` (`receiver_id`),
+  KEY `idx_order` (`order_id`),
+  CONSTRAINT `fk_message_order` FOREIGN KEY (`order_id`) REFERENCES `order` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin COMMENT='消息表';
+
+-- 文本消息（AES加密示例）
+INSERT INTO `message` (`sender_id`, `receiver_id`, `msg_type`, `content`, `created_at`) VALUES
+(1, 2, 'TEXT', '7A3B8E1F4C9D2A5B6E0F1C3D4E5F6A7B', '2023-11-20 10:00:00.123');
+
+-- 图片消息（OSS地址）
+INSERT INTO `message` (`sender_id`, `receiver_id`, `msg_type`, `content`, `extras`) VALUES
+(2, 1, 'IMAGE', 'https://oss.dnun.com/msg/123.jpg',
+ '{"width": 800, "height": 600, "format": "JPEG"}');
+
+-- 订单关联消息
+INSERT INTO `message` (`sender_id`, `receiver_id`, `msg_type`, `content`, `order_id`, `extras`) VALUES
+(3, 1, 'ORDER', '您的订单状态已更新', 1,
+ '{"order_no": "ORD202311001", "new_status": "ACCEPTED"}');
+
+-- 系统通知
+INSERT INTO `message` (`sender_id`, `receiver_id`, `msg_type`, `content`, `extras`) VALUES
+(0, 1, 'SYSTEM', 'SYSTEM_MSG_ACCOUNT_UPDATE',
+ '{"tpl_id": 5, "vars": {"time": "2023-11-20 14:30"}}');

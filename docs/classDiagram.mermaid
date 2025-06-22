@@ -1,74 +1,86 @@
 classDiagram
-%% 1. 用户核心类
+%% 用户核心类
     class User {
         +id: Long
         +openid: String
         +nickname: String
-        +likeCount: Integer
         +addresses: List~Address~
         +createdOrders: List~Order~
         +acceptedOrders: List~Order~
+        +sentMessages: List~Message~
+        +receivedMessages: List~Message~
         +reviews: List~Review~
         +blacklists: List~Blacklist~
+        +getDefaultAddress() Address
     }
 
-%% 2. 地址簿
+%% 地址类
     class Address {
         +id: Long
-        +user: User
         +contactName: String
         +contactPhone: String
-        +location: String
+        +location: String "经度,纬度"
         +detail: String
-        +isDefault: Boolean
+        +getFullAddress() String
     }
 
-%% 3. 订单
+%% 订单类
     class Order {
         +id: Long
         +status: String
         +amount: BigDecimal
-        +creator: User
-        +runner: User
-        +pickupAddress: Address
-        +deliveryAddress: Address
-        +payment: Payment
-        +review: Review
+        +calculateDistance() Double
     }
 
-%% 4. 支付记录
+%% 支付类
     class Payment {
         +id: Long
         +transactionId: String
         +status: String
-        +amount: BigDecimal
     }
 
-%% 5. 评价
+%% 消息类（重点优化）
+    class Message {
+        +id: Long
+        +msgType: Enum "TEXT|IMAGE|ORDER|SYSTEM"
+        +content: String "加密内容"
+        +extras: JSON
+        +createdAt: LocalDateTime
+        +getDisplayContent() String
+    }
+
+%% 评价类
     class Review {
         +id: Long
         +rating: Integer
         +comment: String
-        +reviewer: User
-        +order: Order
     }
 
-%% 6. 黑名单
+%% 黑名单类
     class Blacklist {
         +id: Long
-        +blocker: User
-        +blockedUser: User
         +createTime: LocalDateTime
     }
 
 %% 关系定义
     User "1" *-- "0..*" Address : "管理"
     User "1" --> "0..*" Order : "创建"
-    User "1" --> "0..*" Order : "接单"
+    User "1" --> "0..*" Order : "接受"
     Order "1" *-- "1" Payment : "关联"
-    User "1" --> "0..*" Review : "发表"
+    User "1" --> "0..*" Message : "发送"
+    User "1" --> "0..*" Message : "接收"
     Order "1" --> "1" Review : "拥有"
+    User "1" --> "0..*" Review : "发表"
     User "1" --> "0..*" Blacklist : "拉黑"
-    Blacklist "1" --> "1" User : "被拉黑"
-    Order "1" --> "1" Address : "取件地址"
-    Order "1" --> "1" Address : "送达地址"
+    Message "1" --> "0..1" Order : "关联订单"
+    Address "1" --> "0..*" Order : "取件地址"
+    Address "1" --> "0..*" Order : "送达地址"
+
+%% 消息类型枚举
+    class MessageType {
+        <<enumeration>>
+        TEXT
+        IMAGE
+        ORDER
+        SYSTEM
+    }
