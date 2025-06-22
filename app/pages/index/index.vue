@@ -64,17 +64,18 @@
 				</view>
 			</scroll-view>
 		</view>
-		<!-- 底部Tabbar -->
-		<view class="tabbar">
-			<view class="tabbar-item" v-for="tab in tabList" :key="tab.id">
-				<uni-icons :type="tab.icon" size="24" :color="tab.active ? '#1a73e8' : '#666'"></uni-icons>
-				<text class="tabbar-text" :style="{ color: tab.active ? '#1a73e8' : '#666' }">{{ tab.name }}</text>
-			</view>
-		</view>
 	</view>
 </template>
 <script lang="ts" setup>
-	import { ref } from 'vue';
+	import { ref, onMounted } from 'vue';
+
+	// Uniapp 生命周期
+	onMounted(() => {
+		uni.showToast({
+			title: "success"
+		})
+	})
+
 	// 功能图标数据
 	const functionList = ref([
 		{ id: 1, name: '代取快递', icon: 'paperplane', color: '#4285F4' },
@@ -159,13 +160,6 @@
 			distance: '700m',
 			time: '40分钟前'
 		}
-	]);
-	// Tabbar数据
-	const tabList = ref([
-		{ id: 1, name: '首页', icon: 'home', active: true },
-		{ id: 2, name: '订单', icon: 'list', active: false },
-		{ id: 3, name: '消息', icon: 'chat', active: false },
-		{ id: 4, name: '我的', icon: 'person', active: false }
 	]);
 	const goToMoreOrders = () => {
 		uni.navigateTo({

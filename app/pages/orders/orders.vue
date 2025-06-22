@@ -55,25 +55,6 @@
 				<text class="empty-text">暂无相关订单</text>
 			</view>
 		</scroll-view>
-		<!-- 底部tabbar -->
-		<view class="tabbar">
-			<view class="tabbar-item">
-				<uni-icons type="home" size="24" color="#999"></uni-icons>
-				<text class="tabbar-text">首页</text>
-			</view>
-			<view class="tabbar-item active">
-				<uni-icons type="list" size="24" color="#1a73e8"></uni-icons>
-				<text class="tabbar-text active">订单</text>
-			</view>
-			<view class="tabbar-item">
-				<uni-icons type="list" size="24" color="#999"></uni-icons>
-				<text class="tabbar-text">消息</text>
-			</view>
-			<view class="tabbar-item">
-				<uni-icons type="person" size="24" color="#999"></uni-icons>
-				<text class="tabbar-text">我的</text>
-			</view>
-		</view>
 	</view>
 </template>
 <script lang="ts" setup>
@@ -396,36 +377,5 @@
 	.empty-text {
 		font-size: 28rpx;
 		color: #999;
-	}
-
-	/* 底部tabbar样式 */
-	.tabbar {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		height: 100rpx;
-		background-color: #fff;
-		display: flex;
-		border-top: 1rpx solid #eee;
-		z-index: 100;
-	}
-
-	.tabbar-item {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.tabbar-text {
-		font-size: 22rpx;
-		color: #999;
-		margin-top: 6rpx;
-	}
-
-	.tabbar-text.active {
-		color: #1a73e8;
 	}
 </style>

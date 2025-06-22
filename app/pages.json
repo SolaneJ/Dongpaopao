@@ -3,14 +3,25 @@
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": ""
 			}
 		},
 		{
-			"path" : "pages/orders/orders",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
+			"path": "pages/orders/orders",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/messages/messages",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": ""
 			}
 		}
 	],
@@ -20,5 +31,38 @@
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8"
 	},
-	"uniIdRouter": {}
+	"uniIdRouter": {},
+	"tabBar": {
+		"color": "#666666",
+		"selectedColor": "#ff9900",
+		"backgroundColor": "#ffffff",
+		"borderStyle": "black",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/home.svg",
+				"selectedIconPath": "/static/home_selected.svg"
+			},
+			{
+				"pagePath": "pages/orders/orders",
+				"text": "订单大厅",
+				"iconPath": "static/order.svg",
+				"selectedIconPath": "static/order_selected.svg"
+			},
+			{
+				"pagePath": "pages/messages/messages",
+				"text": "消息",
+				"iconPath": "static/message.svg",
+				"selectedIconPath": "static/message_selected.svg"
+			},
+			{
+				"pagePath": "pages/user/user",
+				"text": "我的",
+				"iconPath": "static/user.svg",
+				"selectedIconPath": "static/user_selected.svg"
+			}
+		]
+	}
+
+
 }
