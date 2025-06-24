@@ -23,6 +23,18 @@
 			"style": {
 				"navigationBarTitleText": ""
 			}
+		},
+		{
+			"path": "pages/user/profile/profile",
+			"style": {
+				"navigationBarTitleText": ""
+			}
+		},
+		{
+			"path": "pages/user/address/address",
+			"style": {
+				"navigationBarTitleText": ""
+			}
 		}
 	],
 	"globalStyle": {
