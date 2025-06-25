@@ -52,26 +52,26 @@
 		"list": [{
 				"pagePath": "pages/index/index",
 				"text": "首页",
-				"iconPath": "static/home.svg",
-				"selectedIconPath": "/static/home_selected.svg"
+				"iconPath": "static/home.png",
+				"selectedIconPath": "/static/home_selected.png"
 			},
 			{
 				"pagePath": "pages/orders/orders",
 				"text": "订单大厅",
-				"iconPath": "static/order.svg",
-				"selectedIconPath": "static/order_selected.svg"
+				"iconPath": "static/order.png",
+				"selectedIconPath": "static/order_selected.png"
 			},
 			{
 				"pagePath": "pages/messages/messages",
 				"text": "消息",
-				"iconPath": "static/message.svg",
-				"selectedIconPath": "static/message_selected.svg"
+				"iconPath": "static/message.png",
+				"selectedIconPath": "static/message_selected.png"
 			},
 			{
 				"pagePath": "pages/user/user",
 				"text": "我的",
-				"iconPath": "static/user.svg",
-				"selectedIconPath": "static/user_selected.svg"
+				"iconPath": "static/user.png",
+				"selectedIconPath": "static/user_selected.png"
 			}
 		]
 	}
