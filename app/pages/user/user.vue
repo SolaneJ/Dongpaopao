@@ -1,7 +1,7 @@
 <template>
 	<view class="page-container">
 		<!-- 用户信息区域 -->
-		<view class="user-info">
+		<view class="user-info"  @click="navigateTo('/pages/user/profile/profile')">
 			<view class="user-avatar">
 				<image class="avatar-image" :src="userInfo.avatar" mode="aspectFill"></image>
 			</view>
@@ -36,24 +36,21 @@
 	const functionList = ref([
 		{ id: 1, name: '我的订单', icon: 'list', path: '/pages/order/list' },
 		{ id: 2, name: '我的钱包', icon: 'wallet', path: '/pages/wallet/index' },
-		{ id: 3, name: '我的地址', icon: 'location', path: '/pages/address/list' },
+		{ id: 3, name: '我的地址', icon: 'location', path: '/pages/user/address/address' },
 		{ id: 4, name: '设置', icon: 'gear', path: '/pages/settings/index' },
 		{ id: 5, name: '帮助中心', icon: 'help', path: '/pages/help/index' },
 		{ id: 6, name: '关于我们', icon: 'info', path: '/pages/about/index' }
 	]);
 
-	const switchTab = (id : number) => {
-		tabList.value.forEach(tab => {
-			tab.active = tab.id === id;
-		});
-		// 实际项目中这里应该跳转到对应页面
+	const navigateTo = (path: string) => {
+	  uni.navigateTo({
+	    url: path
+	  });
 	};
-
-	const navigateTo = (path : string) => {
-		uni.navigateTo({
-			url: path
-		});
-	};
+	// 示例：跳转到pages目录下的detail页面
+	uni.navigateTo({
+	  url: '/pages/detail/detail?id=123&name=uniapp'
+	});
 </script>
 <style>
 	page {

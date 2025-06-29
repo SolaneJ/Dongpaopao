@@ -3,7 +3,10 @@
 		<!-- 用户信息编辑区域 -->
 		<view class="edit-container">
 			<view class="edit-header">
-				<uni-icons type="arrowleft" size="24" color="#333" @click="goBack"></uni-icons>
+				<!-- <text class="" @click="goBack"><</text> -->
+				<!-- <uni-icons type="left" size="30"></uni-icons> -->
+
+				<uni-icons type="left" size="24" color="#333" @click="goBack"></uni-icons>
 				<text class="edit-title">个人信息</text>
 				<text class="edit-save" @click="saveInfo">保存</text>
 			</view>
@@ -71,10 +74,15 @@
 			}
 		});
 	};
+const goBack = () => {
+  uni.navigateBack({
+    delta: 1 // 返回层级，1 表示返回上一级
+  });
+};
 
-	const goBack = () => {
-		uni.navigateBack();
-	};
+	// const goBack = () => {
+	// 	uni.navigateBack();
+	// };
 
 	const saveInfo = () => {
 		uni.showToast({
@@ -102,17 +110,22 @@
 	}
 
 	.edit-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 30rpx;
-		border-bottom: 1rpx solid #f0f0f0;
+	    display: flex;
+	    /* 让标题居中，把返回按钮放左边，保存按钮放右边 */
+	    justify-content: space-between; 
+	    align-items: center;
+	    padding: 30rpx;
+	    border-bottom: 1rpx solid #f0f0f0;
+	    position: relative;
 	}
-
 	.edit-title {
-		font-size: 32rpx;
-		font-weight: bold;
-		color: #333;
+	    font-size: 32rpx;
+	    font-weight: bold;
+	    color: #333;
+	    /* 绝对定位让标题水平居中 */
+	    position: absolute; 
+	    left: 50%;
+	    transform: translateX(-50%); 
 	}
 
 	.edit-save {

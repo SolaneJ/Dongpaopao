@@ -163,8 +163,8 @@
 
 	.message-badge {
 		position: absolute;
-		right: 25rpx;
-		top: 25rpx;
+		right: 26rpx;
+		top: 82rpx;
 		width: 36rpx;
 		height: 36rpx;
 		line-height: 36rpx;

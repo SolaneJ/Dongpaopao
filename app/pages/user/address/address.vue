@@ -3,7 +3,7 @@
 		<!-- 我的地址页面 -->
 		<view class="address-container">
 			<view class="address-header">
-				<uni-icons type="arrowleft" size="24" color="#333" @click="goBack"></uni-icons>
+				<uni-icons type="left" size="24" color="#333" @click="goBack"></uni-icons>
 				<text class="address-title">我的地址</text>
 				<uni-icons type="plus" size="24" color="#1a73e8" @click="addAddress"></uni-icons>
 			</view>

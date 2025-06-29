@@ -19,7 +19,8 @@
 			</view>
 		</view>
 		<!-- 订单列表 -->
-		<scroll-view class="order-list" scroll-y>
+		<!-- 导航条scroll-y -->
+		<scroll-view class="order-list" >
 			<view class="order-item" v-for="order in filteredOrders" :key="order.id">
 				<view class="order-header">
 					<text class="order-id">订单号：{{ order.orderNo }}</text>
@@ -203,7 +204,13 @@
 	page {
 		height: 100%;
 		background-color: #f5f5f5;
+		box-sizing: border-box; /* 确保盒模型计算正确 */
 	}
+	/* .order - list ::-webkit-scrollbar {
+	  width: 0;
+	  height: 0;
+	  display: none;
+	} */
 
 	.order-page {
 		display: flex;
@@ -243,7 +250,6 @@
 		bottom: 0;
 		left: 50%;
 		transform: translateX(-50%);
-		width: 60rpx;
 		height: 4rpx;
 		background-color: #1a73e8;
 		border-radius: 2rpx;
@@ -253,6 +259,7 @@
 	.order-list {
 		flex: 1;
 		padding: 20rpx;
+		box-sizing: border-box; /* 确保内边距不增加额外宽度 */
 	}
 
 	.order-item {
@@ -261,6 +268,10 @@
 		padding: 30rpx;
 		margin-bottom: 20rpx;
 		box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+		margin-left: 0; /* 移除左侧边距 */
+		margin-right: 0; /* 移除右侧边距 */
+		width: 100%; /* 明确设置宽度 */
+		box-sizing: border-box; /* 确保内边距不增加额外宽度 */
 	}
 
 	.order-header {
