@@ -21,6 +21,7 @@
 </template>
 <script lang="ts" setup>
 	import { ref } from 'vue';
+	import { onPullDownRefresh } from '@dcloudio/uni-app'
 
 	// 消息列表数据
 	const messageList = ref([
@@ -71,14 +72,54 @@
 			preview: '药品已经送到医务室了，请查收',
 			time: '前天',
 			unread: ''
+		},
+		{
+			id: 7,
+			name: '食堂阿姨',
+			avatar: 'https://www.loliapi.com/acg/pp/',
+			preview: '您预订的早餐已经准备好了，请来窗口领取',
+			time: '前天',
+			unread: '1'
+		},
+		{
+			id: 8,
+			name: '图书馆管理员',
+			avatar: 'https://www.loliapi.com/acg/pp/',
+			preview: '您借阅的《计算机网络》即将到期，请及时归还',
+			time: '3天前',
+			unread: ''
+		},
+		{
+			id: 9,
+			name: '社团部长',
+			avatar: 'https://www.loliapi.com/acg/pp/',
+			preview: '周末的活动方案已更新，群文件里可以查看',
+			time: '3天前',
+			unread: '3'
+		},
+		{
+			id: 10,
+			name: '小陈',
+			avatar: 'https://www.loliapi.com/acg/pp/',
+			preview: '记得帮我带一本《高等数学》习题册',
+			time: '4天前',
+			unread: ''
 		}
 	]);
 
 	const viewMessageDetail = (id : number) => {
+		const msg = messageList.value.find(m => m.id === id);
+		if (!msg) return;
 		uni.navigateTo({
-			url: `/pages/message-detail/index?id=${id}`
+			url: `/pages/messages/private-chat/private-chat?id=${id}&name=${encodeURIComponent(msg.name)}&avatar=${encodeURIComponent(msg.avatar)}`
 		});
 	};
+
+	onPullDownRefresh(() => {
+		uni.showToast({
+			title: "触发下拉刷新"
+		})
+	})
 </script>
 <style>
 	page {

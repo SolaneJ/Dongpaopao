@@ -15,7 +15,8 @@
 		{
 			"path": "pages/messages/messages",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": true
 			}
 		},
 		{

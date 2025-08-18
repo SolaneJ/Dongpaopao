@@ -5,17 +5,17 @@
 			<swiper class="swiper" circular interval="1500" autoplay="true">
 				<swiper-item>
 					<image class="banner-image"
-						src="https://ai-public.mastergo.com/ai/img_res/18ab4fc61c2f01fef4e5fb883df33b29.jpg"
+						src="https://ai-public.mastergo.com/ai/img_res/6945a6b7e8506df1abcd0efce30213d7.jpg"
 						mode="widthFix" />
 				</swiper-item>
 				<swiper-item>
 					<image class="banner-image"
-						src="https://ai-public.mastergo.com/ai/img_res/18ab4fc61c2f01fef4e5fb883df33b29.jpg"
+						src="https://ai-public.mastergo.com/ai/img_res/ea7587e8643368749c2e819938953839.jpg"
 						mode="widthFix" />
 				</swiper-item>
 				<swiper-item>
 					<image class="banner-image"
-						src="https://ai-public.mastergo.com/ai/img_res/18ab4fc61c2f01fef4e5fb883df33b29.jpg"
+						src="https://ai-public.mastergo.com/ai/img_res/120fce42fd9e45edcd603cc750ec7054.jpg"
 						mode="widthFix" />
 				</swiper-item>
 			</swiper>
