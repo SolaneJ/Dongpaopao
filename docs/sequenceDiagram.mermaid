@@ -1,0 +1,41 @@
+sequenceDiagram
+    participant App as 微信小程序
+    participant Gateway as API网关
+    participant Auth as 认证服务
+    participant User as 用户服务
+    participant Order as 订单服务
+    participant Redis as Redis缓存
+    participant DB as MySQL数据库
+
+%% 1. 登录获取Token
+    App->>+Auth: POST /auth/login (code)
+    Auth->>+微信服务器: 校验code
+    微信服务器-->>-Auth: openid
+    Auth->>+DB: 查询用户
+    DB-->>-Auth: 用户数据
+    Auth->>Redis: SET token:{jwt}
+    Auth-->>-App: 返回Token
+
+%% 2. 业务请求（获取可接订单）
+    App->>+Gateway: GET /orders/available (Header)
+    Gateway->>+Redis: GET token:{jwt}
+    Redis-->>-Gateway: 用户ID
+    Gateway->>+Order: 转发请求
+    Order->>+Redis: GET黑名单缓存
+    alt 缓存命中
+        Redis-->>-Order: 黑名单IDs
+    else 缓存未命中
+        Order->>+DB: 查询黑名单
+        DB-->>-Order: 黑名单数据
+        Order->>Redis: SET缓存
+    end
+    Order->>+DB: 查询订单
+    DB-->>-Order: 订单列表
+    Order-->>-Gateway: 返回数据
+    Gateway-->>-App: 响应结果
+
+%% 3. Token刷新（错误示例修正）
+    App->>+Auth: POST /auth/refresh (refresh_token)
+    Auth->>+Redis: 校验refresh_token
+    Redis-->>-Auth: 校验结果
+    Auth-->>-App: 新Token

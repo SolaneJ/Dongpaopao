@@ -1,0 +1,91 @@
+services:
+  # 服务发现与配置中心
+  pao-nacos:
+    image: nacos/nacos-server:v2.5.1
+    networks:
+      - pao_network
+    # 环境变量
+    environment:
+      - MODE=standalone
+#      - SPRING_DATASOURCE_PLATFORM=mysql
+#      - MYSQL_SERVICE_HOST=172.18.0.1
+#      - MYSQL_SERVICE_PORT=3306
+#      - MYSQL_SERVICE_DB_NAME=pao
+#      - MYSQL_SERVICE_USER=root
+#      - MYSQL_SERVICE_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    # 端口映射
+    ports:
+      - "7848:7848"
+      - "8848:8848"
+      - "9848:9848"
+    # 容器名称
+    container_name: pao-nacos
+    # 健康检查
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://127.0.0.1:8848/nacos/v1/ns/instance/list?serviceName=serviceName" ]
+      # 为需要时间引导的容器提供初始化时间
+      start_period: 30s
+      # 检查间隔
+      interval: 30s
+      # 超时时间
+      timeout: 3s
+      # 失败重试次数
+      retries: 3
+
+  # 数据库
+  pao-db:
+    image: mysql:9.3.0
+    networks:
+      - pao_network
+    environment:
+      # 指定数据库名称设为默认数据库
+      - MYSQL_DATABASE=pao
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - "../sql/:/docker-entrypoint-initdb.d/"
+    ports:
+      - "3306:3306"
+    container_name: pao-db
+
+  # 网关
+  pao-gateway:
+    build: ./pao-gateway
+    networks:
+      - pao_network
+    # 依赖启动
+    depends_on:
+      pao-nacos:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    container_name: pao-gateway
+
+  # 用户服务
+  pao-user-service:
+    build: ./pao-service/pao-user-service
+    networks:
+      - pao_network
+    depends_on:
+      pao-nacos:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    container_name: pao-user-service
+
+  # 订单服务
+  pao-order-service:
+    build: ./pao-service/pao-order-service
+    networks:
+      - pao_network
+    depends_on:
+      pao-nacos:
+        condition: service_healthy
+    ports:
+      - "9000:9000"
+    container_name: pao-order-service
+
+# 自定义网络名，让容器间可以通过服务名互相访问
+networks:
+  pao_network:
+    name: pao_network
+    driver: bridge

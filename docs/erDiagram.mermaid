@@ -1,0 +1,18 @@
+erDiagram
+    USER ||--o{ ADDRESS : "管理"
+    USER }|--|{ ORDER : "下单/接单"
+    ORDER ||--|| PAYMENT : "关联"
+    USER ||--o{ MESSAGE : "发送"
+    USER ||--o{ MESSAGE : "接收"
+    USER ||--o{ BLACKLIST : "拉黑"
+    ORDER ||--|| REVIEW : "拥有"
+    USER ||--o{ REVIEW : "发表"
+
+%% 实体定义
+    USER { }
+    ADDRESS { }
+    ORDER { }
+    PAYMENT { }
+    MESSAGE { }
+    BLACKLIST { }
+    REVIEW { }
