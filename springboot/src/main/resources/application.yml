@@ -1,0 +1,25 @@
+server:
+  port: 8181
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: dongpaopao
+  datasource:
+    url: jdbc:mysql://localhost:3306/pao?useSSL=false&serverTimezone=GMT
+    username: root
+    password: ${MYSQL_ROOT_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+
+# 打印 AOP 代理创建和切入点匹配详情
+#logging:
+#  level:
+#    org.springframework.aop.aspectj: DEBUG
+#    org.springframework.aop.framework: DEBUG

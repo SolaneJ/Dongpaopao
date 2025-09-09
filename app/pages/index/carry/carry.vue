@@ -125,6 +125,7 @@
 </template>
 <script lang="ts" setup>
 	import { ref, computed } from 'vue';
+	
 	// 基本信息
 	const takeoutInfo = ref({
 		remark: ''

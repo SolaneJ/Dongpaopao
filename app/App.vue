@@ -1,10 +1,24 @@
 <script>
+	import request from '@/utils/request.js'
+	import {
+		useUserStore
+	} from '@/stores/user.js'
+
 	export default {
 		onLaunch: function() {
-			// console.log('App Launch')
-		},
-		onShow: function() {
-			// console.log('App Show')
+			const user = useUserStore()
+			uni.login({
+				success: (res) => {
+					request({
+						url: 'login',
+						data: {
+							code: res.code
+						}
+					}).then((res) => {
+						user.setUid(res.data.uid)
+					})
+				}
+			})
 		}
 	}
 </script>
