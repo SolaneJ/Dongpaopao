@@ -1,26 +1,28 @@
 package com.github.solanej.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.github.solanej.common.R;
 import com.github.solanej.entity.User;
 import com.github.solanej.mapper.UserMapper;
 import com.github.solanej.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
-
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
     @Override
-    public User createUserByOpenid(String openid) {
-        final User newUser = new User();
-        newUser.setSex(-1);
-        newUser.setOpenid(openid);
-        newUser.setUid(UUID.randomUUID().toString());
-        userMapper.insert(newUser);
-        return newUser;
+    public R updateUserInfo(User user) {
+        userMapper.updateById(user);
+        return R.success();
+    }
+
+    @Override
+    public R getUserInfo(String uId) {
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUid, uId));
+        return R.success(user);
     }
 }

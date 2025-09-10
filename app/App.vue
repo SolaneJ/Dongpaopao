@@ -10,12 +10,12 @@
 			uni.login({
 				success: (res) => {
 					request({
-						url: 'login',
+						url: '/auth/login',
 						data: {
 							code: res.code
 						}
 					}).then((res) => {
-						user.setUid(res.data.uid)
+						user.setUid(res.data)
 					})
 				}
 			})

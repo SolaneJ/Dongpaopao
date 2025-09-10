@@ -1,13 +1,13 @@
 <template>
 	<view class="page-container">
 		<!-- 用户信息区域 -->
-		<view class="user-info"  @click="navigateTo('/pages/user/profile/profile')">
+		<view class="user-info" @click="navigateTo('/pages/user/profile/profile')">
 			<view class="user-avatar">
 				<image class="avatar-image" :src="userInfo.avatar" mode="aspectFill"></image>
 			</view>
 			<view class="user-detail">
-				<text class="user-name">{{ userInfo.name }}</text>
-				<text class="user-id">ID: {{ userInfo.id }}</text>
+				<text class="user-name">{{ userInfo.nickname }}</text>
+				<text class="user-id">{{ userInfo.uid }}</text>
 			</view>
 			<uni-icons type="arrowright" size="20" color="#999"></uni-icons>
 		</view>
@@ -23,14 +23,30 @@
 	</view>
 </template>
 <script lang="ts" setup>
-	import { ref } from 'vue';
+	import { reactive, ref } from 'vue';
+	import { useUserStore } from '@/stores/user';
+	import { onShow } from '@dcloudio/uni-app';
 
-	// 用户信息
-	const userInfo = ref({
-		name: '校园跑腿达人',
-		id: 'ST20230001',
-		avatar: 'https://ai-public.mastergo.com/ai/img_res/8243a04aa54f4e3cda41894c1e6cd0bd.jpg'
-	});
+	import request from '../../utils/request';
+
+	const userStore = useUserStore()
+
+	let userInfo = ref({
+		avatar: "https://avatar.iran.liara.run/public",
+		nickname: "未知用户",
+		uid: "null"
+	})
+
+	onShow(() => {
+		request({
+			url: '/user/info',
+			data: {
+				uid: userStore.info.uid
+			}
+		}).then((res) => {
+			userStore.info = userInfo.value = res.data
+		})
+	})
 
 	// 功能列表
 	const functionList = ref([
@@ -42,15 +58,15 @@
 		{ id: 6, name: '关于我们', icon: 'info', path: '/pages/about/index' }
 	]);
 
-	const navigateTo = (path: string) => {
-	  uni.navigateTo({
-	    url: path
-	  });
+	const goToProfile = () => {
+		
+	}
+
+	const navigateTo = (path : string) => {
+		uni.navigateTo({
+			url: path
+		});
 	};
-	// 示例：跳转到pages目录下的detail页面
-	uni.navigateTo({
-	  url: '/pages/detail/detail?id=123&name=uniapp'
-	});
 </script>
 <style>
 	page {

@@ -5,17 +5,18 @@
 			<view class="edit-content">
 				<view class="avatar-edit">
 					<image class="avatar-image" :src="userInfo.avatar" mode="aspectFill"></image>
-					<text class="avatar-edit-text" @click="changeAvatar">更换头像</text>
+					<!-- <text class="avatar-edit-text" @click="changeAvatar">更换头像</text> -->
+					<button class="avatar-edit-text" open-type="chooseAvatar" @chooseavatar="changeAvatar">更换头像</button>
 				</view>
 
 				<view class="form-item">
 					<text class="form-label">昵称</text>
-					<input class="form-input" v-model="userInfo.name" placeholder="请输入昵称" />
+					<input class="form-input" v-model="userInfo.nickname" placeholder="请输入昵称" />
 				</view>
 
 				<view class="form-item">
 					<text class="form-label">ID</text>
-					<text class="form-value">{{ userInfo.id }}</text>
+					<text class="form-value">{{ userInfo.uid }}</text>
 				</view>
 
 				<view class="form-item">
@@ -28,7 +29,7 @@
 
 				<view class="form-item">
 					<text class="form-label">学校</text>
-					<input class="form-input" v-model="userInfo.school" placeholder="请输入学校名称" />
+					<input class="form-input" v-model="userInfo.sid" placeholder="请选择学校" />
 				</view>
 
 				<view class="form-item">
@@ -44,14 +45,14 @@
 </template>
 <script lang="ts" setup>
 	import { ref } from 'vue';
-	// 用户信息
-	const userInfo = ref({
-		name: '校园跑腿达人',
-		id: 'ST20230001',
-		avatar: 'https://ai-public.mastergo.com/ai/img_res/8243a04aa54f4e3cda41894c1e6cd0bd.jpg',
-		school: '清华大学',
-		phone: '13800138000'
-	});
+	import { useUserStore } from '@/stores/user';
+	import { onLoad } from '@dcloudio/uni-app'
+
+	onLoad(() => {
+		// 加载学校列表
+	})
+
+	const userInfo = useUserStore().info
 
 	const genderOptions = ['男', '女', '保密'];
 	const genderIndex = ref(0);
@@ -64,7 +65,7 @@
 		uni.chooseImage({
 			count: 1,
 			success: (res) => {
-				userInfo.value.avatar = res.tempFilePaths[0];
+				userInfo.avatar = res.tempFilePaths[0];
 			}
 		});
 	};
@@ -157,8 +158,8 @@
 		font-size: 28rpx;
 		color: #333;
 	}
-	
-	.save-button{
+
+	.save-button {
 		margin-top: 5%;
 	}
 </style>

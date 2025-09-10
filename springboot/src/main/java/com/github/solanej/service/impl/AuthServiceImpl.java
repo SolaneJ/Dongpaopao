@@ -14,6 +14,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -52,9 +53,18 @@ public class AuthServiceImpl implements AuthService {
         User theUser = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getOpenid, openid));
 
         if (theUser == null) {
-            theUser = userService.createUserByOpenid(openid);
+            theUser = createUserByOpenid(openid);
         }
 
-        return R.success(theUser);
+        return R.success(theUser.getUid());
+    }
+
+    private User createUserByOpenid(String openid) {
+        final User newUser = new User();
+        newUser.setSex(-1);
+        newUser.setOpenid(openid);
+        newUser.setUid(UUID.randomUUID().toString());
+        userMapper.insert(newUser);
+        return newUser;
     }
 }
