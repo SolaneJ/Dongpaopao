@@ -21,7 +21,16 @@ function request(options) {
 				resolve(res.data)
 			},
 			fail: (err) => {
-				reject(err)
+				// reject(err)
+				uni.showToast({
+					title: err.errMsg,
+					icon: 'none'
+				})
+
+				// 执行调用方传入的失败回调（自定义操作）
+				if (typeof options.failed === 'function') {
+					options.failed(err)
+				}
 			}
 		})
 	})
