@@ -23,18 +23,22 @@
 					<text class="form-label">性别</text>
 					<picker class="form-picker" mode="selector" :range="genderOptions" :value="genderIndex"
 						@change="genderChange">
-						<text>{{ genderOptions[genderIndex] }}</text>
+						<view>{{ genderOptions[genderIndex] }}</view>
 					</picker>
 				</view>
 
 				<view class="form-item">
 					<text class="form-label">学校</text>
-					<input class="form-input" v-model="userInfo.sid" placeholder="请选择学校" />
+					<picker :range="schoolList" :range-key="'sname'" :index="schoolIndex">
+						<view>{{ schoolList[schoolIndex].sname }}</view>
+					</picker>
+					<!-- <input class="form-input" v-model="userInfo.sid" placeholder="请选择学校" /> -->
 				</view>
 
 				<view class="form-item">
 					<text class="form-label">手机号</text>
-					<input class="form-input" v-model="userInfo.phone" placeholder="请输入手机号" type="number" />
+					<input class="form-input" v-model="userInfo.phone" placeholder="请授权手机号" disabled />
+					<button open-type="getPhoneNumber">授权手机号</button>
 				</view>
 
 				<!-- 保存 -->
@@ -44,40 +48,54 @@
 	</view>
 </template>
 <script lang="ts" setup>
-	import { ref } from 'vue';
+	import { reactive, ref } from 'vue';
 	import { useUserStore } from '@/stores/user';
 	import { onLoad } from '@dcloudio/uni-app'
+	import request from '@/utils/request';
 
 	onLoad(() => {
 		// 加载学校列表
+		request({
+			url: "/school/list"
+		}).then((res) => {
+			schoolList.value = res.data
+		})
 	})
 
 	const userInfo = useUserStore().info
 
-	const genderOptions = ['男', '女', '保密'];
+	// 性别picker
+	const genderOptions = ref(['男', '女', '保密'])
 	const genderIndex = ref(0);
 
 	const genderChange = (e : any) => {
 		genderIndex.value = e.detail.value;
 	};
 
-	const changeAvatar = () => {
-		uni.chooseImage({
-			count: 1,
-			success: (res) => {
-				userInfo.avatar = res.tempFilePaths[0];
-			}
-		});
-	};
-	const goBack = () => {
-		uni.navigateBack({
-			delta: 1 // 返回层级，1 表示返回上一级
-		});
-	};
+	// 学校picker
+	const schoolList = ref([{}])
+	const schoolIndex = ref(0)
 
-	// const goBack = () => {
-	// 	uni.navigateBack();
-	// };
+	// 更新头像的回调函数
+	const changeAvatar = (res) => {
+
+		const tempAvatarUrl = res.detail.avatarUrl
+
+		uni.uploadFile({
+			url: "http://localhost:8181/api/user/avatar?uid=" + userInfo.uid,
+			filePath: tempAvatarUrl,
+			name: "file",
+			success(res) {
+				uni.showToast({
+					title: "上传头像成功!",
+					icon: 'none'
+				})
+				// 更新头像
+				// JSON.parse(res.data).data
+				userInfo.avatar = JSON.parse(res.data).data
+			}
+		})
+	};
 
 	const saveInfo = () => {
 		uni.showToast({
