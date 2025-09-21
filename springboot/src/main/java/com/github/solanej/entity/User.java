@@ -1,6 +1,5 @@
 package com.github.solanej.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
@@ -14,9 +13,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class User {
 
-    @TableId(value = "id", type = IdType.AUTO)
-    private long id;
-
+    @TableId
     private String uid;
 
     private String openid;

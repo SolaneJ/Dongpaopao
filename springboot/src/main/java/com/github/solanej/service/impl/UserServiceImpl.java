@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public R getUserInfo(String uId) {
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUid, uId));
+        User user = userMapper.selectById(uId);
         return R.success(user);
     }
 
