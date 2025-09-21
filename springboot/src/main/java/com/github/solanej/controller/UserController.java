@@ -1,5 +1,6 @@
 package com.github.solanej.controller;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.github.solanej.common.R;
 import com.github.solanej.entity.User;
 import com.github.solanej.service.UserService;
@@ -25,7 +26,8 @@ public class UserController {
      */
     @PutMapping("/update")
     @ApiOperation("更新用户信息")
-    public R updateUserInfo(@RequestBody User user) {
+    public R updateUserInfo(@RequestBody JSONObject jsonObject) {
+        User user = jsonObject.getObject("user", User.class);
         return userService.updateUserInfo(user);
     }
 

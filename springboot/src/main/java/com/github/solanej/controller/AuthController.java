@@ -33,4 +33,10 @@ public class AuthController {
     public R login(@NotNull @RequestParam("code") String code) {
         return authService.login(code);
     }
+
+    @GetMapping("/getPhoneNumber")
+    @ApiOperation("根据一次性code获取手机号")
+    public R getPhoneNumber(@RequestParam("uid") String uid, @NotNull @RequestParam("code") String code) {
+        return authService.getPhoneNumber(uid, code);
+    }
 }

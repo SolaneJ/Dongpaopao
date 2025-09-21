@@ -32,7 +32,7 @@
 	const userStore = useUserStore()
 
 	let userInfo = ref({
-		avatar: "https://avatar.iran.liara.run/public",
+		avatar: null,
 		nickname: "未知用户",
 		uid: "null"
 	})

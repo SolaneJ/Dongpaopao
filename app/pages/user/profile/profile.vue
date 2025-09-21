@@ -38,7 +38,7 @@
 				<view class="form-item">
 					<text class="form-label">手机号</text>
 					<input class="form-input" v-model="userInfo.phone" placeholder="请授权手机号" disabled />
-					<button open-type="getPhoneNumber">授权手机号</button>
+					<button open-type="getPhoneNumber" @getphonenumber="getPhoneNumber">授权手机号</button>
 				</view>
 
 				<!-- 保存 -->
@@ -62,7 +62,9 @@
 		})
 	})
 
-	const userInfo = useUserStore().info
+	const userStore = useUserStore()
+
+	const userInfo = userStore.info
 
 	// 性别picker
 	const genderOptions = ref(['男', '女', '保密'])
@@ -88,16 +90,31 @@
 			success(res) {
 				uni.showToast({
 					title: "上传头像成功!",
-					icon: 'none'
+					icon: 'none',
 				})
-				// 更新头像
-				// JSON.parse(res.data).data
+				// 
 				userInfo.avatar = JSON.parse(res.data).data
 			}
 		})
 	};
 
+	const getPhoneNumber = (res) => {
+		const code = res.detail.code
+		request({
+			url: "/auth/getPhoneNumber?code=" + code + "&uid=" + userInfo.uid,
+		}).then((res) => {
+			userInfo.phone = res.data
+		})
+	}
+
 	const saveInfo = () => {
+		request({
+			url: "/user/update",
+			data: {
+				user: userInfo
+			},
+			method: "PUT"
+		})
 		uni.showToast({
 			title: '保存成功',
 			icon: 'success'

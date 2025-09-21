@@ -7,10 +7,14 @@ spring:
   application:
     name: dongpaopao
   datasource:
-    url: jdbc:mysql://localhost:3306/pao?useSSL=false&serverTimezone=GMT
+    url: jdbc:mysql://localhost:3306/pao?useSSL=false&serverTimezone=GMT&allowPublicKeyRetrieval=true
     username: root
-    password: ${MYSQL_ROOT_PASSWORD}
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
