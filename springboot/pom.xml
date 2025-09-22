@@ -68,13 +68,6 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- minio对象存储 -->
-        <dependency>
-            <groupId>io.minio</groupId>
-            <artifactId>minio</artifactId>
-            <version>8.5.17</version>
-        </dependency>
-
         <!-- swagger -->
         <dependency>
             <groupId>io.springfox</groupId>

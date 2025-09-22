@@ -2,8 +2,7 @@
 	<view class="page-container">
 		<!-- 地图组件 -->
 		<view class="map-container">
-			<map class="map" :latitude="location.latitude" :longitude="location.longitude" :markers="markers"
-				show-location></map>
+			<map class="map" :latitude="location.latitude" :longitude="location.longitude" show-location></map>
 		</view>
 		<scroll-view scroll-y class="content-container">
 			<!-- 快递信息区域 -->
@@ -114,22 +113,24 @@
 </template>
 <script lang="ts" setup>
 	import { ref } from 'vue';
+	import { onLoad } from '@dcloudio/uni-app'
+	import request from '../../../utils/request';
+
+	onLoad(() => {
+		/* 获取位置 */
+		uni.getLocation({
+			success(res) {
+				location.value = res;
+				console.log(res);
+			}
+		})
+	})
+
+	const fetchLocation = (() => { })
+
 	// 地图位置信息
-	const location = ref({
-		latitude: 39.908692,
-		longitude: 116.397477,
-	});
-	const markers = ref([
-		{
-			id: 1,
-			latitude: 39.908692,
-			longitude: 116.397477,
-			title: '当前位置',
-			iconPath: '/static/location.png',
-			width: 32,
-			height: 32
-		}
-	]);
+	const location = ref({})
+
 	// 快递信息
 	const expressInfo = ref({
 		code: '',
@@ -205,39 +206,17 @@
 	const handleTimeChange = (e : any) => {
 		deliveryInfo.value.time = e.detail.value;
 	};
+	/* 下单操作 */
 	const handleSubmit = () => {
-		if (!expressInfo.value.code) {
-			uni.showToast({
-				title: '请输入取件码或快递单号',
-				icon: 'none'
-			});
-			return;
-		}
-		if (!expressInfo.value.company) {
-			uni.showToast({
-				title: '请选择快递公司',
-				icon: 'none'
-			});
-			return;
-		}
-		if (!deliveryInfo.value.name) {
-			uni.showToast({
-				title: '请输入收件人姓名',
-				icon: 'none'
-			});
-			return;
-		}
-		if (!deliveryInfo.value.phone) {
-			uni.showToast({
-				title: '请输入手机号码',
-				icon: 'none'
-			});
-			return;
-		}
-		uni.showToast({
-			title: '下单成功',
-			icon: 'success'
-		});
+		request({
+			url: "/order/create",
+			method: "POST",
+			data: {
+				xdr: "",
+				orderType: "E",
+				detail: expressInfo
+			}
+		})
 	};
 </script>
 <style>
