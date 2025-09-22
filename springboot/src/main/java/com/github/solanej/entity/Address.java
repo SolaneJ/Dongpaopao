@@ -1,9 +1,13 @@
 package com.github.solanej.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
+
+@Data
 public class Address {
 
-    private int id;
-
+    @TableId(type = IdType.ASSIGN_ID)
     private String aid;
 
     private String uid;
@@ -14,5 +18,5 @@ public class Address {
 
     private String detail;
 
-    private String is_default;
+    private Boolean is_default;
 }
