@@ -18,5 +18,5 @@ public class Address {
 
     private String detail;
 
-    private Boolean is_default;
+    private Boolean isDefault;
 }

@@ -45,39 +45,8 @@
 				</view>
 			</view>
 			<!-- 配送信息区域 -->
-			<view class="card">
-				<view class="section-title">
-					<text>配送信息</text>
-				</view>
-				<!-- 收件人姓名 -->
-				<view class="input-group">
-					<text class="input-label">收件人</text>
-					<input v-model="deliveryInfo.name" placeholder="请输入收件人姓名" class="input-field" />
-				</view>
-				<!-- 手机号码 -->
-				<view class="input-group">
-					<text class="input-label">手机号码</text>
-					<input v-model="deliveryInfo.phone" placeholder="请输入手机号码" class="input-field" type="number" />
-				</view>
-				<!-- 配送地址 -->
-				<view class="input-group">
-					<text class="input-label">配送地址</text>
-					<view class="address-selector" @click="goToAddressPage">
-						<text>{{deliveryInfo.address || '请选择配送地址'}}</text>
-						<uni-icons type="arrowright" size="16" color="#999" />
-					</view>
-				</view>
-				<!-- 期望送达时间 -->
-				<view class="input-group">
-					<text class="input-label">期望送达时间</text>
-					<picker mode="time" @change="handleTimeChange">
-						<view class="picker">
-							{{deliveryInfo.time || '请选择期望送达时间'}}
-							<uni-icons type="arrowdown" size="16" color="#999" />
-						</view>
-					</picker>
-				</view>
-			</view>
+			<AddressPicker />
+
 			<!-- 费用信息区域 -->
 			<view class="card">
 				<view class="section-title">
@@ -115,6 +84,8 @@
 	import { ref } from 'vue';
 	import { onLoad } from '@dcloudio/uni-app'
 	import request from '../../../utils/request';
+
+	import AddressPicker from '../../../components/address-picker.vue';
 
 	onLoad(() => {
 		/* 获取位置 */
@@ -193,6 +164,7 @@
 	const handleLocationChange = (e : any) => {
 		expressInfo.value.location = storageLocations.value[e.detail.value];
 	};
+	/* 选择地址 */
 	const goToAddressPage = () => {
 		uni.navigateTo({
 			url: '/pages/index/address'
@@ -219,7 +191,7 @@
 		})
 	};
 </script>
-<style>
+<style scoped>
 	page {
 		height: 100%;
 	}
