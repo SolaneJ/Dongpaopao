@@ -23,7 +23,7 @@ public class R {
     private Object data;
 
     public static R success() {
-        return new R();
+        return new R(0, "success", null);
     }
 
     public static R success(Object data) {
