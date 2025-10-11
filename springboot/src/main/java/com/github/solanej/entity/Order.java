@@ -29,8 +29,6 @@ public class Order {
 
     private String detail;
 
-    private String remark;
-
     private BigDecimal amount;
 
     private String jdr;
