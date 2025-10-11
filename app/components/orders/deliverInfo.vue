@@ -1,3 +1,4 @@
+<!-- deliverInfo.vue -->
 <template>
 	<view class="card">
 		<u-title>配送信息</u-title>
@@ -5,7 +6,7 @@
 		<view class="input-group">
 			<text class="input-label">配送地址</text>
 			<view class="address-selector" @click="showPopup = !showPopup">
-				<view v-if="selectedAddr" class="selected-address">
+				<view v-if="selectedAddrInfo.sjr" class="selected-address">
 					<view class="selected-header">
 						<text class="selected-name">{{ selectedAddrInfo.sjr }}</text>
 						<text class="selected-phone">{{ selectedAddrInfo.phone }}</text>
@@ -28,6 +29,7 @@
 			</picker>
 		</view>
 
+		<!-- 配送地址选择 -->
 		<u-popup :show="showPopup" safeAreaInsetBottom safeAreaInsetTop :closeable="true" @close="showPopup=false">
 			<view class="popup-content">
 				<view class="popup-title">选择配送地址</view>
@@ -51,7 +53,9 @@
 
 <script setup>
 	import {
-		ref
+		ref,
+		reactive,
+		defineExpose
 	} from 'vue';
 
 	import request from '@/utils/request.js'
@@ -66,15 +70,20 @@
 
 	const user = useUserStore()
 
-	const selectedAddr = ref('');
 	const selectedAddrId = ref('');
-	const selectedAddrInfo = ref({});
+	const selectedAddrInfo = reactive({
+		sjr: '',
+		phone: '',
+		detail: '',
+		isDefault: false
+	});
 	const selectedTime = ref('');
 
 	const showPopup = ref(false)
 
 	const addrs = ref([])
 
+	// 加载地址列表
 	const loadAddr = () => {
 		request({
 			url: "/address/list?uid=" + user.info.uid,
@@ -88,10 +97,16 @@
 		})
 	}
 
+	// 选择地址
 	const selectAddress = (addr) => {
 		selectedAddrId.value = addr.aid
-		selectedAddr.value = `${addr.sjr} ${addr.phone} ${addr.detail}`
-		selectedAddrInfo.value = addr
+		Object.assign(selectedAddrInfo, {
+			sjr: addr.sjr,
+			phone: addr.phone,
+			detail: addr.detail,
+			isDefault: addr.isDefault,
+			aid: addr.aid
+		})
 		showPopup.value = false
 	}
 
@@ -99,9 +114,56 @@
 		loadAddr();
 	})
 
+	// 处理时间选择
 	const handleTimeChange = (e) => {
 		selectedTime.value = e.detail.value;
 	};
+
+	// 表单验证
+	const validateForm = () => {
+		if (!selectedAddrInfo.sjr) {
+			uni.showToast({
+				title: '请选择配送地址',
+				icon: 'none'
+			});
+			return false;
+		}
+
+		if (!selectedTime.value) {
+			uni.showToast({
+				title: '请选择期望送达时间',
+				icon: 'none'
+			});
+			return false;
+		}
+
+		// 验证手机号格式
+		const phoneRegex = /^1[3-9]\d{9}$/;
+		// if (!phoneRegex.test(selectedAddrInfo.phone)) {
+		// 	uni.showToast({
+		// 		title: '收货人手机号格式不正确',
+		// 		icon: 'none'
+		// 	});
+		// 	return false;
+		// }
+
+		return true;
+	}
+
+	// 获取表单数据
+	const getFormData = () => {
+		return {
+			// address: selectedAddrInfo,
+			aid: selectedAddrId.value,
+			deliveryTime: selectedTime.value
+		};
+	}
+
+	// 暴露方法给父组件
+	defineExpose({
+		validateForm,
+		getFormData
+	})
 </script>
 
 <style scoped>

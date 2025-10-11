@@ -22,7 +22,7 @@
 		</view>
 		<!-- 顶部功能图标区 -->
 		<view class="function-grid">
-			<view class="function-item" v-for="item in functionList" :key="item.id" @click="navigateTo(item.path)">
+			<view class="function-item" v-for="item in functionList" :key="item.id" @click="navigateTo(item.type)">
 				<view class="icon-wrapper">
 					<uni-icons :type="item.icon" size="40" :color="item.color"></uni-icons>
 				</view>
@@ -92,11 +92,11 @@
 
 	// 功能图标数据
 	const functionList = ref([
-		{ id: 1, name: '代取快递', icon: 'paperplane', color: '#4285F4', path: '/pages/index/express/express' },
-		{ id: 2, name: '代取外卖', icon: 'shop', color: '#EA4335', path: '/pages/index/takeaway/takeaway' },
-		{ id: 3, name: '搬运', icon: 'cart', color: '#FBBC05', path: '/pages/index/carry/carry' },
-		{ id: 4, name: '代购', icon: 'list', color: '#34A853', path: '/pages/index/purchasing/purchasing' }
-	]);
+		{ id: 1, name: '代取快递', icon: 'paperplane', color: '#4285F4', type: 'E' },
+		{ id: 2, name: '代取外卖', icon: 'shop', color: '#EA4335', type: 'T' },
+		{ id: 3, name: '搬运', icon: 'cart', color: '#FBBC05', type: 'C' },
+		{ id: 4, name: '代购', icon: 'list', color: '#34A853', type: 'P' }
+	])
 	// 进行中订单数据
 	const activeOrders = ref([
 		{
@@ -175,11 +175,11 @@
 			time: '40分钟前'
 		}
 	]);
-	const navigateTo = (path : string) => {
+	const navigateTo = (type : string) => {
 		uni.navigateTo({
-			url: path
-		});
-	};
+			url: `/pages/index/order?type=${type}`
+		})
+	}
 	const goToUserOrders = () => {
 		uni.navigateTo({
 			url: '/pages/user/orders/orders?tab=active'

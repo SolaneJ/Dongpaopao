@@ -1,22 +1,13 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
-			"path": "pages/start_page",
-			"style": {
-				"navigationBarTitleText": ""
-			}
+			"path": "pages/start"
 		},
 		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": ""
-			}
+			"path": "pages/index/index"
 		},
 		{
-			"path": "pages/orders/orders",
-			"style": {
-				"navigationBarTitleText": ""
-			}
+			"path": "pages/orders/orders"
 		},
 		{
 			"path": "pages/messages/messages",
@@ -26,70 +17,25 @@
 			}
 		},
 		{
-			"path": "pages/user/user",
-			"style": {
-				"navigationBarTitleText": ""
-			}
+			"path": "pages/user/user"
 		},
 		{
-			"path": "pages/user/profile/profile",
-			"style": {
-				"navigationBarTitleText": ""
-			}
+			"path": "pages/user/profile/profile"
 		},
 		{
-			"path": "pages/user/address/address",
-			"style": {
-				"navigationBarTitleText": ""
-			}
+			"path": "pages/user/address/address"
 		},
 		{
-			"path": "pages/index/express/express",
-			"style": {
-				"navigationBarTitleText": ""
-			}
+			"path": "pages/user/orders/orders"
 		},
 		{
-			"path" : "pages/index/takeaway/takeaway",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
-			}
+			"path": "pages/common/order-detail/order-detail"
 		},
 		{
-			"path" : "pages/index/carry/carry",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
-			}
+			"path": "pages/messages/private-chat/private-chat"
 		},
 		{
-			"path" : "pages/index/purchasing/purchasing",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
-			}
-		},
-		{
-			"path" : "pages/user/orders/orders",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
-			}
-		},
-		{
-			"path" : "pages/common/order-detail/order-detail",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
-			}
-		},
-		{
-			"path" : "pages/messages/private-chat/private-chat",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
-			}
+			"path": "pages/index/order"
 		}
 	],
 	"globalStyle": {

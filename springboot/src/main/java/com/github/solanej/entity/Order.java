@@ -25,9 +25,9 @@ public class Order {
 
     private Character order_type;
 
-    private Integer aid;
+    private String aid;
 
-    private JSONObject detail;
+    private String detail;
 
     private String remark;
 
