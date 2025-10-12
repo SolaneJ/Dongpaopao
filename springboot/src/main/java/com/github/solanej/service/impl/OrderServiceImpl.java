@@ -3,6 +3,8 @@ package com.github.solanej.service.impl;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.solanej.common.R;
+import com.github.solanej.mapper.AddressMapper;
+import com.github.solanej.service.AddressService;
 import com.github.solanej.service.OrderService;
 
 import com.github.solanej.mapper.OrderMapper;
@@ -19,6 +21,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
 
+    private final AddressMapper addressMapper;
+
     @Override
     public R createOrder(JSONObject params) {
 
@@ -31,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
         // 期望送达时间
 //        order.setExpectTime(deliverInfo.get("expectTime"));
         // 订单类型
-        order.setOrder_type(params.getString("type").charAt(0));
+        order.setOrderType(params.getString("type").charAt(0));
         // 地址
         order.setAid(deliverInfo.getString("aid"));
         // 订单数据
@@ -51,5 +55,16 @@ public class OrderServiceImpl implements OrderService {
                         .eq(Order::getStatus, 'D')
                         .orderByDesc(Order::getCreateTime));
         return R.success(orders);
+    }
+
+    @Override
+    public R detailOrder(String oid) {
+        JSONObject result = new JSONObject();
+
+        Order order = orderMapper.selectById(oid);
+        result.put("order", order);
+        // 地址
+        result.put("address", addressMapper.selectById(order.getAid()));
+        return R.success(result);
     }
 }

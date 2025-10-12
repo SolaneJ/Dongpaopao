@@ -3,10 +3,9 @@
 		<!-- 顶部选项卡和刷新按钮 -->
 		<u-tabs :list="tabList" :current="currentTab" @change="changeTab">
 			<template #right>
-				<u-icon name="reload" size="21" bold @click="loadOrders()"/>
+				<u-icon name="reload" size="21" bold @click="handleRefresh" />
 			</template>
 		</u-tabs>
-
 
 		<!-- 订单列表 -->
 		<view class="order-list">
@@ -24,10 +23,10 @@
 					</view>
 				</view>
 				<view class="order-footer">
-					<text class="order-time">{{order.createTime }}</text>
+					<text class="order-time">{{ formatTime(order.createTime) }}</text>
 					<view class="order-actions">
-						<!-- <button class="action-btn" @click.stop="acceptOrder(order.oid)">接单</button> -->
-						<u-button size="mini" type="primary" shape="circle">接单</u-button>
+						<u-button size="mini" type="primary" shape="circle"
+							@click.stop="acceptOrder(order.oid)">接单</u-button>
 					</view>
 				</view>
 			</view>
@@ -139,11 +138,12 @@
 			if (detail.remark) return detail.remark;
 
 			const orderType = order.order_type || order.inferredType;
+
 			switch (orderType) {
 				case 'E':
-					return `${detail.company || ''} ${detail.code || ''}`;
+					return `${detail.company || ''} ${detail.code ? '取件码：****' : ''}`;
 				case 'T':
-					return `${detail.location || ''} ${detail.code || ''}`;
+					return `${detail.location || ''} ${detail.code ? '取件码：****' : ''}`;
 				case 'C':
 					return `${detail.description || ''} ${detail.weight || ''}`;
 				case 'P':
@@ -159,6 +159,9 @@
 	// 格式化时间
 	const formatTime = (time) => {
 		if (!time) return '刚刚';
+		// 如果已经是格式化好的时间字符串，直接返回
+		if (typeof time === 'string' && time.includes('月')) return time;
+		// 如果是时间戳或Date对象
 		const date = new Date(time);
 		return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 	};
@@ -196,10 +199,11 @@
 		});
 	};
 
-	// 跳转到订单详情页
+	// 跳转到订单详情页 - 传递订单类型和订单号
 	const navigateToDetail = (order : any) => {
+		const orderType = order.order_type || order.inferredType;
 		uni.navigateTo({
-			url: `/pages/common/order-detail/order-detail?oid=${order.oid}`
+			url: `/pages/common/order-detail/order-detail?oid=${order.oid}&orderType=${orderType}`
 		});
 	};
 
@@ -246,21 +250,6 @@
 		flex-direction: column;
 		height: 100vh;
 		background-color: #f5f5f5;
-	}
-
-	.tab-header {
-		display: flex;
-		align-items: center;
-		background-color: #fff;
-		padding: 0 20rpx;
-		border-bottom: 1rpx solid #eee;
-		position: sticky;
-		top: 0;
-		z-index: 10;
-	}
-
-	.tabs-container {
-		flex: 1;
 	}
 
 	.order-list {
@@ -355,16 +344,6 @@
 	.order-actions {
 		display: flex;
 	}
-
-	/* 	.action-btn {
-		font-size: 24rpx;
-		padding: 0 30rpx;
-		height: 60rpx;
-		line-height: 60rpx;
-		border-radius: 30rpx;
-		background-color: #1a73e8;
-		color: #fff;
-	} */
 
 	.empty-tip {
 		display: flex;

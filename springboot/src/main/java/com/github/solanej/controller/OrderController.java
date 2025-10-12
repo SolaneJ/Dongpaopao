@@ -3,6 +3,7 @@ package com.github.solanej.controller;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.solanej.common.R;
 import com.github.solanej.service.OrderService;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,12 @@ public class OrderController {
     }
 
     @GetMapping("/list")
-    public R listOrder() {
-        return orderService.listOrder();
+    public R listOrder(@RequestParam("uid") @Nullable String uid) {
+        return orderService.listOrder(uid);
+    }
+
+    @GetMapping("/detail")
+    public R detailOrder(@RequestParam("oid") String oid) {
+        return orderService.detailOrder(oid);
     }
 }

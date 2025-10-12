@@ -8,4 +8,6 @@ public interface OrderService {
     R createOrder(JSONObject params);
 
     R listOrder(String uid);
+
+    R detailOrder(String oid);
 }
