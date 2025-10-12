@@ -11,7 +11,7 @@
 
 				<view class="form-item">
 					<text class="form-label">昵称</text>
-					<input class="form-input" v-model="userInfo.nickname" placeholder="请输入昵称" />
+					<input type="nickname" class="form-input" v-model="userInfo.nickname" placeholder="请输入昵称" />
 				</view>
 
 				<view class="form-item">

@@ -44,10 +44,13 @@
 	import { ref, computed } from 'vue';
 	import { onLoad, onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 	import request from '@/utils/request.js'
+	import { useUserStore } from '@/stores/user';
 
 	const currentTab = ref(0);
 	const loading = ref(false);
 	const orders = ref([]);
+
+	const userInfo = useUserStore().info
 
 	// 选项卡配置
 	const tabList = ref([
@@ -96,7 +99,7 @@
 		loading.value = true;
 		try {
 			const res = await request({
-				url: '/order/list',
+				url: '/order/list?uid=' + userInfo.uid,
 				method: 'GET'
 			});
 			const pendingOrders = (res.data || []).filter(order => order.status === 'D');

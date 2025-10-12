@@ -56,15 +56,9 @@ public class AuthServiceImpl implements AuthService {
         final String openid = jsonObject.getString("openid");
 
         User theUser = userMapper.selectOne(
-                new LambdaQueryWrapper<User>().eq(User::getOpenid, openid)
-                        .select(User::getUid)
-                        .select(User::getNickname)
-                        .select(User::getSex)
-                        .select(User::getSid)
-                        .select(User::getAvatar)
-                        .select(User::getPhone)
-                        .select(User::getAvatar)
-                        .select(User::getCtime));
+                new LambdaQueryWrapper<User>()
+                        .select(User::getUid, User::getNickname, User::getSex, User::getSid, User::getAvatar, User::getPhone, User::getAvatar, User::getCtime)
+                        .eq(User::getOpenid, openid));
 
         /* 没有用户则创建一条记录 */
         if (theUser == null) {

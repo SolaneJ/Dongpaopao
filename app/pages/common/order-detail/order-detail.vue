@@ -45,7 +45,7 @@
 						<text class="label">快递公司</text>
 						<text class="value">{{ businessDetail.company || '未知' }}</text>
 					</view>
-					<view class="info-item">
+					<view class="info-item" v-if="showSensitiveInfo">
 						<text class="label">取件码</text>
 						<text class="value">{{ businessDetail.code || '无' }}</text>
 					</view>
@@ -61,7 +61,7 @@
 						<text class="label">取餐点</text>
 						<text class="value">{{ businessDetail.location || '未知' }}</text>
 					</view>
-					<view class="info-item">
+					<view class="info-item" v-if="showSensitiveInfo">
 						<text class="label">取件码</text>
 						<text class="value">{{ businessDetail.code || '无' }}</text>
 					</view>
@@ -118,16 +118,8 @@
 					<text class="value">{{ addressInfo.sjr }}</text>
 				</view>
 				<view class="info-item">
-					<text class="label">联系电话</text>
-					<text class="value">{{ addressInfo.phone }}</text>
-				</view>
-				<view class="info-item">
 					<text class="label">配送地址</text>
 					<text class="value">{{ addressInfo.detail }}</text>
-				</view>
-				<view class="info-item" v-if="addressInfo.isDefault">
-					<text class="label">默认地址</text>
-					<text class="value">是</text>
 				</view>
 			</view>
 
@@ -137,8 +129,8 @@
 					@click="acceptOrder">接单</u-button>
 				<u-button v-if="orderDetail.status === 'J'" type="warning" shape="circle" :loading="completeLoading"
 					@click="completeOrder">完成订单</u-button>
-				<u-button v-if="orderDetail.status === 'D'" type="error" shape="circle" plain :loading="cancelLoading"
-					@click="cancelOrder">取消订单</u-button>
+				<u-button v-if="orderDetail.status === 'D' && orderDetail.xdr == userInfo.uid" type="error"
+					shape="circle" plain :loading="cancelLoading" @click="cancelOrder">取消订单</u-button>
 			</view>
 		</view>
 
@@ -157,7 +149,7 @@
 	const acceptLoading = ref(false);
 	const completeLoading = ref(false);
 	const cancelLoading = ref(false);
-	
+
 	const userInfo = useUserStore().info
 
 	const orderDetail = ref({
@@ -180,6 +172,11 @@
 	// 计算属性
 	const showActionButtons = computed(() => {
 		return ['D', 'J'].includes(orderDetail.value.status);
+	});
+
+	// 是否显示敏感信息（取件码）
+	const showSensitiveInfo = computed(() => {
+		return ['J', 'S'].includes(orderDetail.value.status);
 	});
 
 	// 订单类型映射
@@ -424,7 +421,6 @@
 </script>
 
 <style scoped>
-	/* 保持原有的样式不变 */
 	.order-detail-page {
 		min-height: 100vh;
 		background-color: #f5f5f5;

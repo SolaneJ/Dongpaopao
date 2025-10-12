@@ -71,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
     public R listOrder(String uid) {
         List<Order> orders = orderMapper.selectList(
                 new LambdaQueryWrapper<Order>()
-//                        .ne(Order::getXdr, uid)
+                        .ne(Order::getXdr, uid)
                         .eq(Order::getStatus, 'D')
                         .orderByDesc(Order::getCreateTime));
         return R.success(orders);
