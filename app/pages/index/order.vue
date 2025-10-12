@@ -87,8 +87,6 @@
 			return;
 		}
 
-		console.log('提交的表单数据:', formData);
-
 		// 显示加载中
 		uni.showLoading({
 			title: '提交中...'

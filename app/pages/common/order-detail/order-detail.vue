@@ -193,7 +193,6 @@
 
 	onLoad((options) => {
 		const { oid } = options;
-		console.log('订单ID:', oid);
 		if (oid) {
 			loadOrderDetail(oid);
 		} else {
@@ -214,8 +213,6 @@
 				method: 'GET'
 			});
 			
-			console.log('接口返回数据:', res);
-			
 			if (res.errCode === 0) {
 				// 设置订单详情
 				orderDetail.value = res.data.order;
@@ -229,7 +226,6 @@
 						businessDetail.value = typeof orderDetail.value.detail === 'string'
 							? JSON.parse(orderDetail.value.detail)
 							: orderDetail.value.detail;
-						console.log('解析后的业务详情:', businessDetail.value);
 					} catch (e) {
 						console.error('解析订单详情失败:', e);
 						businessDetail.value = {};
