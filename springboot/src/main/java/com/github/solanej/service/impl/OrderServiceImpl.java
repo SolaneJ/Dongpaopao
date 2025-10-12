@@ -2,6 +2,7 @@ package com.github.solanej.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.solanej.common.R;
 import com.github.solanej.mapper.AddressMapper;
 import com.github.solanej.service.AddressService;
@@ -12,6 +13,7 @@ import com.github.solanej.entity.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -44,6 +46,24 @@ public class OrderServiceImpl implements OrderService {
         order.setAmount(feeInfo.getBigDecimal("totalFee"));
 
         orderMapper.insert(order);
+        return R.success();
+    }
+
+    @Override
+    public R acceptOrder(JSONObject params) {
+        String oid = params.getString("oid");
+        String uid = params.getString("uid");
+
+        /* 采用数据库状态更新方案，防止并发问题 */
+        int effectRows = orderMapper.update(new LambdaUpdateWrapper<Order>()
+                .set(Order::getStatus, 'J')         // 接单状态改为进行中
+                .set(Order::getJdr, uid)
+                .set(Order::getAcceptTime, LocalDateTime.now())
+                .eq(Order::getOid, oid)
+                .eq(Order::getStatus, 'D'));
+        if (effectRows == 0) {
+            return R.error("订单不存在或已被接单");
+        }
         return R.success();
     }
 

@@ -43,7 +43,7 @@
 						loadingText.value = "当前网络不通畅，请稍后重试"
 					}
 				}).then((res) => {
-					user.setUid(res.data)
+					user.setUserInfo(res.data)
 					// 成功则进入到主页
 					uni.switchTab({
 						url: "/pages/index/index"

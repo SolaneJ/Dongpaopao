@@ -25,20 +25,6 @@
 				<uni-icons type="plus" size="20" color="#999" @click="increaseCount" />
 			</view>
 		</view>
-		<!-- 是否需要电梯 -->
-		<view class="input-group">
-			<text class="input-label">是否有电梯</text>
-			<view class="toggle-wrapper">
-				<text class="toggle-label">取货地点</text>
-				<switch :checked="businessInfo.hasPickupElevator" @change="handlePickupElevatorChange"
-					color="#2979ff" />
-			</view>
-			<view class="toggle-wrapper" style="margin-top: 20rpx;">
-				<text class="toggle-label">送货地点</text>
-				<switch :checked="businessInfo.hasDeliveryElevator" @change="handleDeliveryElevatorChange"
-					color="#2979ff" />
-			</view>
-		</view>
 		<!-- 备注 -->
 		<view class="input-group">
 			<text class="input-label">备注信息</text>
@@ -55,8 +41,6 @@
 		description: '',
 		weight: '',
 		count: 1,
-		hasPickupElevator: false,
-		hasDeliveryElevator: false,
 		remark: ''
 	});
 
@@ -82,14 +66,6 @@
 		if (businessInfo.count > 1) {
 			businessInfo.count--;
 		}
-	};
-
-	const handlePickupElevatorChange = (e : any) => {
-		businessInfo.hasPickupElevator = e.detail.value;
-	};
-
-	const handleDeliveryElevatorChange = (e : any) => {
-		businessInfo.hasDeliveryElevator = e.detail.value;
 	};
 
 	// 暴露业务数据给父组件（统一接口）

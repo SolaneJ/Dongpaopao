@@ -25,8 +25,7 @@
 				<view class="order-footer">
 					<text class="order-time">{{ formatTime(order.createTime) }}</text>
 					<view class="order-actions">
-						<u-button size="mini" type="primary" shape="circle"
-							@click.stop="acceptOrder(order.oid)">接单</u-button>
+						<u-icon name="arrow-right-double" />
 					</view>
 				</view>
 			</view>
@@ -42,7 +41,7 @@
 </template>
 
 <script lang="ts" setup>
-	import { ref, computed, onMounted } from 'vue';
+	import { ref, computed } from 'vue';
 	import { onLoad, onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 	import request from '@/utils/request.js'
 
@@ -206,32 +205,6 @@
 			url: `/pages/common/order-detail/order-detail?oid=${order.oid}&orderType=${orderType}`
 		});
 	};
-
-	// 接单
-	const acceptOrder = async (oid : string) => {
-		try {
-			await request({
-				url: '/order/accept',
-				method: 'POST',
-				data: { oid }
-			});
-			uni.showToast({
-				title: '接单成功',
-				icon: 'success'
-			});
-			// 接单成功后从列表中移除
-			orders.value = orders.value.filter(order => order.oid !== oid);
-		} catch (error) {
-			uni.showToast({
-				title: '接单失败',
-				icon: 'none'
-			});
-		}
-	};
-
-	onMounted(() => {
-		loadOrders();
-	});
 
 	// 页面显示时刷新数据
 	onShow(() => {

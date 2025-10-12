@@ -22,11 +22,29 @@ public class OrderController {
         return orderService.createOrder(params);
     }
 
+    /**
+     * 接单
+     *
+     * @return 接单结果
+     */
+    @PutMapping("/accept")
+    public R acceptOrder(@RequestBody JSONObject params) {
+        return orderService.acceptOrder(params);
+    }
+
+    /**
+     * @param uid 用户id
+     * @return 订单列表
+     */
     @GetMapping("/list")
     public R listOrder(@RequestParam("uid") @Nullable String uid) {
         return orderService.listOrder(uid);
     }
 
+    /**
+     * @param oid 订单id
+     * @return 订单详情
+     */
     @GetMapping("/detail")
     public R detailOrder(@RequestParam("oid") String oid) {
         return orderService.detailOrder(oid);

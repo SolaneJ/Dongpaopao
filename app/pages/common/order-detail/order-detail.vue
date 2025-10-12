@@ -29,12 +29,16 @@
 					<text class="label">期望送达时间</text>
 					<text class="value">{{ formatTime(orderDetail.expectTime) }}</text>
 				</view>
+				<view class="info-item" v-if="orderDetail.acceptTime">
+					<text class="label">接单时间</text>
+					<text class="value">{{ formatTime(orderDetail.acceptTime) }}</text>
+				</view>
 			</view>
 
 			<!-- 业务详情信息 -->
 			<view class="info-card" v-if="Object.keys(businessDetail).length > 0">
 				<view class="card-title">{{ getOrderTypeText(orderDetail.orderType) }}详情</view>
-				
+
 				<!-- 快递代取 -->
 				<view v-if="orderDetail.orderType === 'E'">
 					<view class="info-item">
@@ -76,14 +80,6 @@
 					<view class="info-item">
 						<text class="label">物品数量</text>
 						<text class="value">{{ businessDetail.count || 1 }}</text>
-					</view>
-					<view class="info-item">
-						<text class="label">取货点电梯</text>
-						<text class="value">{{ businessDetail.hasPickupElevator ? '有' : '无' }}</text>
-					</view>
-					<view class="info-item">
-						<text class="label">送货点电梯</text>
-						<text class="value">{{ businessDetail.hasDeliveryElevator ? '有' : '无' }}</text>
 					</view>
 				</view>
 
@@ -137,9 +133,12 @@
 
 			<!-- 操作按钮 -->
 			<view class="action-buttons" v-if="showActionButtons">
-				<u-button v-if="orderDetail.status === 'D'" type="primary" shape="circle" @click="acceptOrder">接单</u-button>
-				<u-button v-if="orderDetail.status === 'J'" type="warning" shape="circle" @click="completeOrder">完成订单</u-button>
-				<u-button v-if="orderDetail.status === 'D'" type="error" shape="circle" plain @click="cancelOrder">取消订单</u-button>
+				<u-button v-if="orderDetail.status === 'D'" type="primary" shape="circle" :loading="acceptLoading"
+					@click="acceptOrder">接单</u-button>
+				<u-button v-if="orderDetail.status === 'J'" type="warning" shape="circle" :loading="completeLoading"
+					@click="completeOrder">完成订单</u-button>
+				<u-button v-if="orderDetail.status === 'D'" type="error" shape="circle" plain :loading="cancelLoading"
+					@click="cancelOrder">取消订单</u-button>
 			</view>
 		</view>
 
@@ -152,8 +151,15 @@
 	import { ref, computed } from 'vue';
 	import { onLoad } from '@dcloudio/uni-app'
 	import request from '@/utils/request.js'
+	import { useUserStore } from '@/stores/user';
 
 	const loading = ref(false);
+	const acceptLoading = ref(false);
+	const completeLoading = ref(false);
+	const cancelLoading = ref(false);
+	
+	const userInfo = useUserStore().info
+
 	const orderDetail = ref({
 		oid: '',
 		xdr: '',
@@ -164,6 +170,7 @@
 		detail: '',
 		amount: 0,
 		jdr: null,
+		acceptTime: null,
 		completeTime: null,
 		status: 'D'
 	});
@@ -205,21 +212,21 @@
 	});
 
 	// 加载订单详情
-	const loadOrderDetail = async (oid: string) => {
+	const loadOrderDetail = async (oid : string) => {
 		loading.value = true;
 		try {
 			const res = await request({
 				url: `/order/detail?oid=${oid}`,
 				method: 'GET'
 			});
-			
+
 			if (res.errCode === 0) {
 				// 设置订单详情
 				orderDetail.value = res.data.order;
-				
+
 				// 设置地址信息
 				addressInfo.value = res.data.address;
-				
+
 				// 解析业务详情
 				if (orderDetail.value.detail) {
 					try {
@@ -249,17 +256,17 @@
 	};
 
 	// 获取订单类型文本
-	const getOrderTypeText = (orderType: string) => {
+	const getOrderTypeText = (orderType : string) => {
 		return orderTypeMap[orderType] || '未知类型';
 	};
 
 	// 获取状态文本
-	const getStatusText = (status: string) => {
+	const getStatusText = (status : string) => {
 		return statusMap[status] || '未知状态';
 	};
 
 	// 格式化时间
-	const formatTime = (time: any) => {
+	const formatTime = (time : any) => {
 		if (!time) return '-';
 		const date = new Date(time);
 		return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
@@ -267,18 +274,18 @@
 
 	// 接单操作
 	const acceptOrder = async () => {
+		if (acceptLoading.value) return;
+
+		acceptLoading.value = true;
 		try {
-			uni.showLoading({
-				title: '接单中...',
-				mask: true
-			});
+			const uid = userInfo.uid
 
 			const res = await request({
 				url: '/order/accept',
-				method: 'POST',
-				data: { 
-					oid: orderDetail.value.oid,
-					orderType: orderDetail.value.orderType
+				method: 'PUT',
+				data: {
+					uid: uid,
+					oid: orderDetail.value.oid
 				}
 			});
 
@@ -289,7 +296,19 @@
 				});
 				// 更新订单状态
 				orderDetail.value.status = 'J';
-				orderDetail.value.jdr = '当前用户ID'; // 这里需要设置当前接单用户的ID
+				orderDetail.value.jdr = userInfo.nickname;
+				orderDetail.value.acceptTime = new Date().toISOString();
+
+				// 接单成功后可以跳转到进行中订单页面或刷新页面
+			} else if (res.errCode === 11) {
+				// 抢单失败
+				uni.showToast({
+					title: '抢单失败，订单已被其他用户接取',
+					icon: 'none',
+					duration: 3000
+				});
+				// 刷新页面获取最新状态
+				loadOrderDetail(orderDetail.value.oid);
 			} else {
 				throw new Error(res.msg || '接单失败');
 			}
@@ -300,38 +319,47 @@
 				icon: 'none'
 			});
 		} finally {
-			uni.hideLoading();
+			acceptLoading.value = false;
 		}
 	};
 
 	// 完成订单
 	const completeOrder = async () => {
+		if (completeLoading.value) return;
+
 		try {
 			uni.showModal({
 				title: '确认完成',
 				content: '确认订单已完成？',
 				success: async (res) => {
 					if (res.confirm) {
-						uni.showLoading({
-							title: '处理中...',
-							mask: true
-						});
+						completeLoading.value = true;
 
-						const result = await request({
-							url: '/order/complete',
-							method: 'POST',
-							data: { oid: orderDetail.value.oid }
-						});
-
-						if (result.errCode === 0) {
-							uni.showToast({
-								title: '订单已完成',
-								icon: 'success'
+						try {
+							const result = await request({
+								url: '/order/complete',
+								method: 'POST',
+								data: { oid: orderDetail.value.oid }
 							});
-							orderDetail.value.status = 'S';
-							orderDetail.value.completeTime = new Date().toISOString();
-						} else {
-							throw new Error(result.msg || '操作失败');
+
+							if (result.errCode === 0) {
+								uni.showToast({
+									title: '订单已完成',
+									icon: 'success'
+								});
+								orderDetail.value.status = 'S';
+								orderDetail.value.completeTime = new Date().toISOString();
+							} else {
+								throw new Error(result.msg || '操作失败');
+							}
+						} catch (error) {
+							console.error('完成订单失败:', error);
+							uni.showToast({
+								title: error.message || '操作失败',
+								icon: 'none'
+							});
+						} finally {
+							completeLoading.value = false;
 						}
 					}
 				}
@@ -342,38 +370,45 @@
 				title: error.message || '操作失败',
 				icon: 'none'
 			});
-		} finally {
-			uni.hideLoading();
 		}
 	};
 
 	// 取消订单
 	const cancelOrder = async () => {
+		if (cancelLoading.value) return;
+
 		try {
 			uni.showModal({
 				title: '确认取消',
 				content: '确定要取消这个订单吗？',
 				success: async (res) => {
 					if (res.confirm) {
-						uni.showLoading({
-							title: '取消中...',
-							mask: true
-						});
+						cancelLoading.value = true;
 
-						const result = await request({
-							url: '/order/cancel',
-							method: 'POST',
-							data: { oid: orderDetail.value.oid }
-						});
-
-						if (result.errCode === 0) {
-							uni.showToast({
-								title: '订单已取消',
-								icon: 'success'
+						try {
+							const result = await request({
+								url: '/order/cancel',
+								method: 'POST',
+								data: { oid: orderDetail.value.oid }
 							});
-							orderDetail.value.status = 'C';
-						} else {
-							throw new Error(result.msg || '取消失败');
+
+							if (result.errCode === 0) {
+								uni.showToast({
+									title: '订单已取消',
+									icon: 'success'
+								});
+								orderDetail.value.status = 'C';
+							} else {
+								throw new Error(result.msg || '取消失败');
+							}
+						} catch (error) {
+							console.error('取消订单失败:', error);
+							uni.showToast({
+								title: error.message || '取消失败',
+								icon: 'none'
+							});
+						} finally {
+							cancelLoading.value = false;
 						}
 					}
 				}
@@ -384,8 +419,6 @@
 				title: error.message || '取消失败',
 				icon: 'none'
 			});
-		} finally {
-			uni.hideLoading();
 		}
 	};
 </script>

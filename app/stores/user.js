@@ -22,7 +22,7 @@ export const useUserStore = defineStore('user', {
 			this.info.uid = uid
 		},
 		setUserInfo(userInfo) {
-			this.userInfo = userInfo
+			this.info = userInfo
 		}
 	},
 	getters: {

@@ -37,6 +37,8 @@ public class Order {
 
     private String jdr;
 
+    private LocalDateTime acceptTime;
+
     private LocalDateTime completeTime;
 
     private Character status;

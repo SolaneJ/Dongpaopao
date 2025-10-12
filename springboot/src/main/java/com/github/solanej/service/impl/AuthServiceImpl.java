@@ -55,7 +55,16 @@ public class AuthServiceImpl implements AuthService {
         /* 用户信息只用一次openid用来换取uId */
         final String openid = jsonObject.getString("openid");
 
-        User theUser = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getOpenid, openid));
+        User theUser = userMapper.selectOne(
+                new LambdaQueryWrapper<User>().eq(User::getOpenid, openid)
+                        .select(User::getUid)
+                        .select(User::getNickname)
+                        .select(User::getSex)
+                        .select(User::getSid)
+                        .select(User::getAvatar)
+                        .select(User::getPhone)
+                        .select(User::getAvatar)
+                        .select(User::getCtime));
 
         /* 没有用户则创建一条记录 */
         if (theUser == null) {
@@ -64,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
 
         final String sessionKey = jsonObject.getString("session_key");
         stringRedisTemplate.opsForValue().set(theUser.getUid(), sessionKey);
-        return R.success(theUser.getUid());
+        return R.success(theUser);
     }
 
     /**
