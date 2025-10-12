@@ -155,7 +155,7 @@
 		return {
 			// address: selectedAddrInfo,
 			aid: selectedAddrId.value,
-			deliveryTime: selectedTime.value
+			expectTime: selectedTime.value
 		};
 	}
 

@@ -7,7 +7,7 @@
 			"path": "pages/index/index"
 		},
 		{
-			"path": "pages/orders/orders"
+			"path": "pages/orders/order_hall"
 		},
 		{
 			"path": "pages/messages/messages",
@@ -55,7 +55,7 @@
 				"selectedIconPath": "/static/home_selected.png"
 			},
 			{
-				"pagePath": "pages/orders/orders",
+				"pagePath": "pages/orders/order_hall",
 				"text": "订单大厅",
 				"iconPath": "static/order.png",
 				"selectedIconPath": "static/order_selected.png"

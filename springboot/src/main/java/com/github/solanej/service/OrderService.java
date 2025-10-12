@@ -7,5 +7,5 @@ public interface OrderService {
 
     R createOrder(JSONObject params);
 
-    R listOrder();
+    R listOrder(String uid);
 }
