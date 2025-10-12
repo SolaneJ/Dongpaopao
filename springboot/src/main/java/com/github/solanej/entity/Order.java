@@ -27,7 +27,7 @@ public class Order {
 
     private LocalDateTime expectTime;
 
-    private Character order_type;
+    private Character orderType;
 
     private String aid;
 
