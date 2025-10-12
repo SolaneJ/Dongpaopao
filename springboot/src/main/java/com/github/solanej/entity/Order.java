@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -21,7 +23,9 @@ public class Order {
 
     private String xdr;
 
-    private String create_time;
+    private LocalDateTime createTime;
+
+    private LocalDateTime expectTime;
 
     private Character order_type;
 
@@ -33,7 +37,7 @@ public class Order {
 
     private String jdr;
 
-    private String complete_time;
+    private LocalDateTime completeTime;
 
     private Character status;
 }
