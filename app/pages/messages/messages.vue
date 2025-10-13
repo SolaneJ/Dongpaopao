@@ -2,128 +2,185 @@
 	<view class="page-container">
 		<!-- 消息列表 -->
 		<view class="message-list">
-			<view class="message-item" v-for="message in messageList" :key="message.id"
-				@click="viewMessageDetail(message.id)">
+			<view class="message-item" v-for="conversation in conversationList" :key="conversation.cid"
+				@click="viewMessageDetail(conversation)">
 				<view class="message-avatar">
-					<image class="avatar-image" :src="message.avatar" mode="aspectFill"></image>
+					<image class="avatar-image" :src="getOtherUserAvatar(conversation)" mode="aspectFill"></image>
 				</view>
 				<view class="message-content">
 					<view class="message-header">
-						<text class="message-name">{{ message.name }}</text>
-						<text class="message-time">{{ message.time }}</text>
+						<text class="message-name">{{ getOtherUserName(conversation) }}</text>
+						<text class="message-time">{{ formatTime(conversation.lastMessageTime) }}</text>
 					</view>
-					<text class="message-preview">{{ message.preview }}</text>
-					<view class="message-badge" v-if="message.unread">{{ message.unread }}</view>
+					<text class="message-preview">{{ getLastMessagePreview(conversation) }}</text>
+					<view class="message-badge" v-if="conversation.unreadCount > 0">{{ conversation.unreadCount > 99 ? '99+' : conversation.unreadCount }}</view>
 				</view>
+			</view>
+			
+			<!-- 空状态 -->
+			<view class="empty-state" v-if="conversationList.length === 0 && !loading">
+				<text class="empty-text">暂无消息</text>
+			</view>
+			
+			<!-- 加载状态 -->
+			<view class="loading-state" v-if="loading">
+				<text class="loading-text">加载中...</text>
 			</view>
 		</view>
 	</view>
 </template>
+
 <script lang="ts" setup>
-	import { ref } from 'vue';
-	import { onPullDownRefresh } from '@dcloudio/uni-app'
+	import { ref, onMounted } from 'vue';
+	import { onPullDownRefresh, onShow } from '@dcloudio/uni-app'
+	import { useUserStore } from '@/stores/user'
+	import request from '../../utils/request';
 
-	// 消息列表数据
-	const messageList = ref([
-		{
-			id: 1,
-			name: '校园跑腿客服',
-			avatar: 'https://ai-public.mastergo.com/ai/img_res/bc200e34b1ae0510e3b5c7f1d9c78358.jpg',
-			preview: '您好，您的订单已接单，配送员将在10分钟内到达',
-			time: '10:30',
-			unread: '2'
-		},
-		{
-			id: 2,
-			name: '张同学',
-			avatar: 'https://ai-public.mastergo.com/ai/img_res/243353e22400be23e8aaed34fbefc5bd.jpg',
-			preview: '我已经到宿舍楼下了，请下来取快递',
-			time: '09:45',
-			unread: ''
-		},
-		{
-			id: 3,
-			name: '李老师',
-			avatar: 'https://ai-public.mastergo.com/ai/img_res/03f7525e6138851af1131f3c8915c965.jpg',
-			preview: '关于作业辅导的问题，我明天下午3点有空',
-			time: '昨天',
-			unread: '1'
-		},
-		{
-			id: 4,
-			name: '王同学',
-			avatar: 'https://ai-public.mastergo.com/ai/img_res/ce2b0e0d7dd0a19514339b1c9307cf66.jpg',
-			preview: '奶茶已经买好了，正在前往图书馆',
-			time: '昨天',
-			unread: ''
-		},
-		{
-			id: 5,
-			name: '系统通知',
-			avatar: 'https://ai-public.mastergo.com/ai/img_res/d6b95191a98aa37e1efc90035cc3a6fd.jpg',
-			preview: '您有新的订单评价，点击查看详情',
-			time: '前天',
-			unread: ''
-		},
-		{
-			id: 6,
-			name: '赵同学',
-			avatar: 'https://ai-public.mastergo.com/ai/img_res/8682ed2af5cee5a36100bd13bb10633a.jpg',
-			preview: '药品已经送到医务室了，请查收',
-			time: '前天',
-			unread: ''
-		},
-		{
-			id: 7,
-			name: '食堂阿姨',
-			avatar: 'https://www.loliapi.com/acg/pp/',
-			preview: '您预订的早餐已经准备好了，请来窗口领取',
-			time: '前天',
-			unread: '1'
-		},
-		{
-			id: 8,
-			name: '图书馆管理员',
-			avatar: 'https://www.loliapi.com/acg/pp/',
-			preview: '您借阅的《计算机网络》即将到期，请及时归还',
-			time: '3天前',
-			unread: ''
-		},
-		{
-			id: 9,
-			name: '社团部长',
-			avatar: 'https://www.loliapi.com/acg/pp/',
-			preview: '周末的活动方案已更新，群文件里可以查看',
-			time: '3天前',
-			unread: '3'
-		},
-		{
-			id: 10,
-			name: '小陈',
-			avatar: 'https://www.loliapi.com/acg/pp/',
-			preview: '记得帮我带一本《高等数学》习题册',
-			time: '4天前',
-			unread: ''
+	// 用户信息
+	const userStore = useUserStore();
+	const userInfo = userStore.info;
+
+	// 会话列表数据
+	const conversationList = ref([]);
+	const loading = ref(false);
+
+	// 获取用户会话列表
+	const fetchConversationList = async () => {
+		loading.value = true;
+		try {
+			console.log(userInfo);
+			const uid = userInfo?.uid;
+			
+			if (!uid) {
+				uni.showToast({
+					title: '请先登录',
+					icon: 'none'
+				});
+				return;
+			}
+
+			const res = await request({
+				url: `/conversation/list?uid=${uid}`,
+				method: 'GET'
+			});
+
+			console.log('会话列表响应:', res);
+			
+			if (res.errCode === 0) {
+				// 直接使用返回的 data 数组
+				conversationList.value = res.data || [];
+				console.log('会话列表数据:', conversationList.value);
+			} else {
+				uni.showToast({
+					title: res.msg || '加载失败',
+					icon: 'none'
+				});
+			}
+		} catch (error) {
+			console.error('获取会话列表失败:', error);
+			uni.showToast({
+				title: '网络错误',
+				icon: 'none'
+			});
+		} finally {
+			loading.value = false;
+			uni.stopPullDownRefresh();
 		}
-	]);
+	};
 
-	const viewMessageDetail = (id : number) => {
-		const msg = messageList.value.find(m => m.id === id);
-		if (!msg) return;
+	// 获取对方用户头像
+	const getOtherUserAvatar = (conversation) => {
+		return conversation.otherUserAvatar || '/static/images/default-avatar.png';
+	};
+
+	// 获取对方用户名称
+	const getOtherUserName = (conversation) => {
+		return conversation.otherUserNickname || '用户';
+	};
+
+	// 获取最后一条消息预览
+	const getLastMessagePreview = (conversation) => {
+		// 根据订单类型生成默认消息预览
+		if (conversation.lastMessageContent) {
+			return conversation.lastMessageContent;
+		}
+		
+		const orderTypeMap = {
+			'E': '快递代取',
+			'T': '外卖代取', 
+			'C': '物品搬运',
+			'P': '商品代购'
+		};
+		
+		const orderTypeText = orderTypeMap[conversation.orderType] || '订单';
+		
+		if (conversation.orderStatus === 'D') {
+			return `${orderTypeText}等待接单中`;
+		} else if (conversation.orderStatus === 'J') {
+			return `${orderTypeText}进行中`;
+		} else if (conversation.orderStatus === 'S') {
+			return `${orderTypeText}已完成`;
+		} else {
+			return `您有一个${orderTypeText}订单`;
+		}
+	};
+
+	// 查看消息详情
+	const viewMessageDetail = (conversation) => {
 		uni.navigateTo({
-			url: `/pages/messages/private-chat/private-chat?id=${id}&name=${encodeURIComponent(msg.name)}&avatar=${encodeURIComponent(msg.avatar)}`
+			url: `/pages/messages/private-chat/private-chat?conversationId=${conversation.cid}&otherUserId=${conversation.otherUserId}&otherUserName=${encodeURIComponent(conversation.otherUserNickname || '用户')}&otherUserAvatar=${encodeURIComponent(conversation.otherUserAvatar || '')}&orderId=${conversation.oid}`
 		});
 	};
 
+	// 格式化时间显示
+	const formatTime = (time: string | Date) => {
+		if (!time) return '';
+		
+		const date = new Date(time);
+		const now = new Date();
+		const diff = now.getTime() - date.getTime();
+		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+		const hours = Math.floor(diff / (1000 * 60 * 60));
+		const minutes = Math.floor(diff / (1000 * 60));
+		
+		if (minutes < 1) {
+			return '刚刚';
+		} else if (hours < 1) {
+			return `${minutes}分钟前`;
+		} else if (days === 0) {
+			// 今天
+			return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+		} else if (days === 1) {
+			// 昨天
+			return '昨天';
+		} else if (days < 7) {
+			// 一周内
+			return `${days}天前`;
+		} else {
+			// 更早
+			return `${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+		}
+	};
+
+	// 生命周期
+	onMounted(() => {
+		fetchConversationList();
+	});
+
+	onShow(() => {
+		// 每次页面显示时刷新数据
+		fetchConversationList();
+	});
+
 	onPullDownRefresh(() => {
-		uni.showToast({
-			title: "触发下拉刷新"
-		})
-	})
+		fetchConversationList();
+	});
 </script>
+
 <style>
 	page {
 		height: 100%;
+		background-color: #f5f5f5;
 	}
 
 	.page-container {
@@ -131,8 +188,7 @@
 		flex-direction: column;
 		height: 100%;
 		background-color: #f5f5f5;
-		padding-bottom: 120rpx;
-		/* 给tabbar留出空间 */
+		padding-bottom: 120rpx; /* 给tabbar留出空间 */
 	}
 
 	/* 消息列表样式 */
@@ -162,6 +218,7 @@
 		width: 100%;
 		height: 100%;
 		border-radius: 50%;
+		background-color: #f0f0f0;
 	}
 
 	.message-content {
@@ -169,11 +226,13 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
+		min-width: 0; /* 防止内容溢出 */
 	}
 
 	.message-header {
 		display: flex;
 		justify-content: space-between;
+		align-items: center;
 		margin-bottom: 10rpx;
 	}
 
@@ -181,23 +240,23 @@
 		font-size: 30rpx;
 		font-weight: bold;
 		color: #333;
-		max-width: 400rpx;
+		flex: 1;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
+		margin-right: 20rpx;
 	}
 
 	.message-time {
 		font-size: 24rpx;
 		color: #999;
+		flex-shrink: 0;
 	}
 
 	.message-preview {
 		font-size: 26rpx;
 		color: #666;
-		display: -webkit-box;
-		-webkit-line-clamp: 1;
-		-webkit-box-orient: vertical;
+		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
@@ -206,13 +265,41 @@
 		position: absolute;
 		right: 26rpx;
 		top: 82rpx;
-		width: 36rpx;
+		min-width: 36rpx;
 		height: 36rpx;
 		line-height: 36rpx;
 		text-align: center;
 		background-color: #ff4d4f;
 		color: #fff;
 		font-size: 22rpx;
-		border-radius: 50%;
+		border-radius: 18rpx;
+		padding: 0 8rpx;
+	}
+
+	/* 空状态 */
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 100rpx 0;
+	}
+
+	.empty-text {
+		font-size: 28rpx;
+		color: #999;
+	}
+
+	/* 加载状态 */
+	.loading-state {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 40rpx 0;
+	}
+
+	.loading-text {
+		font-size: 28rpx;
+		color: #999;
 	}
 </style>

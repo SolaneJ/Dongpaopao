@@ -1,6 +1,5 @@
 package com.github.solanej.service.impl;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.solanej.common.R;
@@ -32,7 +31,6 @@ public class ConversationServiceImpl implements ConversationService {
         String uid = params.getString("uid");
 
         Conversation conversation = new Conversation();
-        conversation.setParticipants(new JSONArray(uid,xdr).toString());
         conversation.setOid(oid);
 
         conversationMapper.insert(conversation);
@@ -41,10 +39,11 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public R listConversation(String uid) {
-        List<Conversation> result = conversationMapper.selectList(new LambdaQueryWrapper<Conversation>()
-                .eq(Conversation::getStatus, "OPENING")
-                .like(Conversation::getParticipants, uid)
-                .orderByDesc(Conversation::getLastMessageSendTime));
+//        List<Conversation> result = conversationMapper.selectList(new LambdaQueryWrapper<Conversation>()
+//                .eq(Conversation::getStatus, "OPENING")
+//                .like(Conversation::getParticipants, uid)
+//                .orderByDesc(Conversation::getLastMessageSendTime));
+        List<JSONObject> result = conversationMapper.listConversation(uid);
         return R.success(result);
     }
 }

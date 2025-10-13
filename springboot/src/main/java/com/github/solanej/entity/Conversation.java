@@ -14,8 +14,6 @@ public class Conversation {
 
     private String oid;
 
-    private String participants;
-
     private Integer messageCounts;
 
     private LocalDateTime createTime;
