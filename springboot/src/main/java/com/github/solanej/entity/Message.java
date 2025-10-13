@@ -15,15 +15,11 @@ public class Message {
 
     private String receiver;
 
-    private enum type {
-        TEXT, VOICE, IMAGE
-    }
+    private String type;
 
     private String content;
 
-    private enum status {
-        SENDING, SENT, READ, FAILED
-    }
+    private String status;
 
     private LocalDateTime sendTime;
 

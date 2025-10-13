@@ -24,7 +24,5 @@ public class Conversation {
 
     private LocalDateTime lastMessageReadTime;
 
-    private enum status{
-        OPENING,CLOSED
-    }
+    private String status;
 }
