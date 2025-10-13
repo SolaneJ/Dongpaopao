@@ -125,8 +125,10 @@
 
 			<!-- 操作按钮 -->
 			<view class="action-buttons" v-if="showActionButtons">
-				<u-button v-if="orderDetail.status === 'D'" type="primary" shape="circle" :loading="acceptLoading"
-					@click="acceptOrder">接单</u-button>
+				<u-button v-if="orderDetail.status === 'J'" type="success" shape="circle"
+					@click="goToPrivateChat(conversationId)">私聊</u-button>
+				<u-button v-if="orderDetail.status === 'D' && orderDetail.xdr != userInfo.uid" type="primary"
+					shape="circle" :loading="acceptLoading" @click="acceptOrder">接单</u-button>
 				<u-button v-if="orderDetail.status === 'J'" type="warning" shape="circle" :loading="completeLoading"
 					@click="completeOrder">完成订单</u-button>
 				<u-button v-if="orderDetail.status === 'D' && orderDetail.xdr == userInfo.uid" type="error"
@@ -135,7 +137,7 @@
 		</view>
 
 		<!-- 加载状态 -->
-		<u-loading-page :loading="loading" bgColor="#f5f5f5"></u-loading-page>
+		<u-loading-page :loading="loading" bgColor="#f5f5f5" />
 	</view>
 </template>
 
@@ -168,6 +170,7 @@
 	});
 	const businessDetail = ref({});
 	const addressInfo = ref(null);
+	const conversationId = ref(null)
 
 	// 计算属性
 	const showActionButtons = computed(() => {
@@ -223,6 +226,9 @@
 
 				// 设置地址信息
 				addressInfo.value = res.data.address;
+
+				// 会话消息
+				conversationId.value = res.data.conversationId;
 
 				// 解析业务详情
 				if (orderDetail.value.detail) {
@@ -296,7 +302,17 @@
 				orderDetail.value.jdr = userInfo.nickname;
 				orderDetail.value.acceptTime = new Date().toISOString();
 
-				// 接单成功后可以跳转到进行中订单页面或刷新页面
+				// 接单成功后创建私聊会话
+				request({
+					url: '/conversation/create',
+					method: 'POST',
+					data: {
+						uid: uid,
+						oid: orderDetail.value.oid
+					},
+				}).then((res) => {
+					conversationId.value = res.data
+				});
 			} else if (res.errCode === 11) {
 				// 抢单失败
 				uni.showToast({
@@ -418,6 +434,13 @@
 			});
 		}
 	};
+
+	// 私聊
+	const goToPrivateChat = (cid) => {
+		uni.navigateTo({
+			url: "/pages/messages/private-chat/private-chat?cid=" + cid
+		})
+	}
 </script>
 
 <style scoped>

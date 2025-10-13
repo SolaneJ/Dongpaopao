@@ -1,18 +1,20 @@
 package com.github.solanej.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 public class Conversation {
 
+    @TableId(type = IdType.ASSIGN_ID)
     private String cid;
 
     private String oid;
 
-    private List<String> participants;
+    private String participants;
 
     private Integer messageCounts;
 

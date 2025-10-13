@@ -4,17 +4,16 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.solanej.common.R;
-import com.github.solanej.mapper.AddressMapper;
-import com.github.solanej.service.AddressService;
-import com.github.solanej.service.OrderService;
-
-import com.github.solanej.mapper.OrderMapper;
+import com.github.solanej.entity.Conversation;
 import com.github.solanej.entity.Order;
+import com.github.solanej.mapper.AddressMapper;
+import com.github.solanej.mapper.ConversationMapper;
+import com.github.solanej.mapper.OrderMapper;
+import com.github.solanej.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 @Service
@@ -24,6 +23,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
 
     private final AddressMapper addressMapper;
+
+    private final ConversationMapper conversationMapper;
 
     @Override
     public R createOrder(JSONObject params) {
@@ -85,6 +86,11 @@ public class OrderServiceImpl implements OrderService {
         result.put("order", order);
         // 地址
         result.put("address", addressMapper.selectById(order.getAid()));
+        // 如果已接单，就查询会话信息
+        if (order.getStatus() != 'D') {
+            Conversation conversation = conversationMapper.selectOne(new LambdaQueryWrapper<Conversation>().eq(Conversation::getOid, oid));
+            result.put("conversationId", conversation.getCid());
+        }
         return R.success(result);
     }
 }
