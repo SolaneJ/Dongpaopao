@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class School {
 
     @TableId
-    private int sid;
+    private Integer sid;
 
     private String sname;
 }

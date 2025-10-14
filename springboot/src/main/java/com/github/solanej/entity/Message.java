@@ -1,5 +1,6 @@
 package com.github.solanej.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class Message {
 
+    @TableId
     private String mid;
 
     private String cid;
