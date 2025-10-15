@@ -1,9 +1,7 @@
 package com.github.solanej.handler;
 
 import com.github.solanej.common.R;
-import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.logging.LogLevel;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  */
 @Slf4j
 @RestControllerAdvice
-public class GlobalHandler {
+public class GlobalExceptionHandler {
 
     /**
      * 处理所有异常
