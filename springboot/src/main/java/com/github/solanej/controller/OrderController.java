@@ -49,4 +49,15 @@ public class OrderController {
     public R detailOrder(@RequestParam("oid") String oid) {
         return orderService.detailOrder(oid);
     }
+
+    /**
+     * 获取进行中的订单列表
+     *
+     * @param uid 用户id
+     * @return 进行中的订单列表
+     */
+    @GetMapping("/progressing")
+    public R progressingOrder(@Nullable @RequestParam("type") String type, @RequestParam("uid") String uid) {
+        return orderService.progressingOrder(type, uid);
+    }
 }

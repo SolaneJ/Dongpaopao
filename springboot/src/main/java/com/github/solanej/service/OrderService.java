@@ -12,4 +12,6 @@ public interface OrderService {
     R listOrder(String uid);
 
     R detailOrder(String oid);
+
+    R progressingOrder(String type, String uid);
 }
