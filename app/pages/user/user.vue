@@ -3,21 +3,22 @@
 		<!-- 用户信息区域 -->
 		<view class="user-info" @click="navigateTo('/pages/user/profile/profile')">
 			<view class="user-avatar">
-				<image class="avatar-image" :src="userInfo.avatar" mode="aspectFill"></image>
+				<!-- <image class="avatar-image" :src="userInfo.avatar" mode="aspectFill"/> -->
+				<u-avatar size="60" class="avatar-image" :src="userInfo.avatar" mode="aspectFill"/>
 			</view>
 			<view class="user-detail">
 				<text class="user-name">{{ userInfo.nickname }}</text>
 				<text class="user-id">{{ userInfo.uid }}</text>
 			</view>
-			<uni-icons type="arrowright" size="20" color="#999"></uni-icons>
+			<uni-icons type="arrowright" size="20" color="#999"/>
 		</view>
 
 		<!-- 功能列表 -->
 		<view class="function-list">
 			<view class="function-item" v-for="item in functionList" :key="item.id" @click="navigateTo(item.path)">
-				<uni-icons :type="item.icon" size="24" color="#666"></uni-icons>
+				<uni-icons :type="item.icon" size="24" color="#666"/>
 				<text class="function-name">{{ item.name }}</text>
-				<uni-icons type="arrowright" size="20" color="#999"></uni-icons>
+				<uni-icons type="arrowright" size="20" color="#999"/>
 			</view>
 		</view>
 	</view>
@@ -59,7 +60,7 @@
 	]);
 
 	const goToProfile = () => {
-		
+
 	}
 
 	const navigateTo = (path : string) => {

@@ -10,7 +10,7 @@
 					<view class="selected-header">
 						<text class="selected-name">{{ selectedAddrInfo.sjr }}</text>
 						<text class="selected-phone">{{ selectedAddrInfo.phone }}</text>
-						<text v-if="selectedAddrInfo.isDefault" class="default-tag">默认</text>
+						<u-tag v-if="selectedAddrInfo.isDefault" text="默认" plain/>
 					</view>
 					<view class="selected-detail">{{ selectedAddrInfo.detail }}</view>
 				</view>
@@ -302,14 +302,6 @@
 	.phone {
 		font-size: 15px;
 		color: #666;
-	}
-
-	.default-tag {
-		background: #ff6b6b;
-		color: white;
-		font-size: 12px;
-		padding: 4rpx 12rpx;
-		border-radius: 20rpx;
 	}
 
 	.address-detail {

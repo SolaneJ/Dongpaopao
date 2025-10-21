@@ -4,8 +4,7 @@
 		<view class="edit-container">
 			<view class="edit-content">
 				<view class="avatar-edit">
-					<image class="avatar-image" :src="userInfo.avatar" mode="aspectFill"></image>
-					<!-- <text class="avatar-edit-text" @click="changeAvatar">更换头像</text> -->
+					<u-avatar class="avatar-image" size="100" :src="userInfo.avatar" mode="aspectFill"/>
 					<button class="avatar-edit-text" open-type="chooseAvatar" @chooseavatar="changeAvatar">更换头像</button>
 				</view>
 
