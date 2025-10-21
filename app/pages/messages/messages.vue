@@ -48,7 +48,6 @@
 	const fetchConversationList = async () => {
 		loading.value = true;
 		try {
-			console.log(userInfo);
 			const uid = userInfo?.uid;
 			
 			if (!uid) {
@@ -63,13 +62,10 @@
 				url: `/conversation/list?uid=${uid}`,
 				method: 'GET'
 			});
-
-			console.log('会话列表响应:', res);
 			
 			if (res.errCode === 0) {
 				// 直接使用返回的 data 数组
 				conversationList.value = res.data || [];
-				console.log('会话列表数据:', conversationList.value);
 			} else {
 				uni.showToast({
 					title: res.msg || '加载失败',
