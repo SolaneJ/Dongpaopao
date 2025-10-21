@@ -19,7 +19,7 @@ public class AddressController {
     }
 
     @DeleteMapping("/delete")
-    public R deleteAddress(@RequestParam JSONObject params) {
+    public R deleteAddress(@RequestBody JSONObject params) {
         return addressService.deleteAddress(params);
     }
 
