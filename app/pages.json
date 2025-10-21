@@ -12,7 +12,6 @@
 		{
 			"path": "pages/messages/messages",
 			"style": {
-				"navigationBarTitleText": "",
 				"enablePullDownRefresh": true
 			}
 		},
@@ -26,7 +25,7 @@
 			"path": "pages/user/address/address"
 		},
 		{
-			"path": "pages/user/orders/orders"
+			"path": "pages/user/orders/myOrders"
 		},
 		{
 			"path": "pages/common/order-detail/order-detail"
