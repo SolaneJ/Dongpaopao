@@ -25,7 +25,7 @@
 			"path": "pages/user/address/address"
 		},
 		{
-			"path": "pages/user/orders/myOrders"
+			"path": "pages/user/orders/my-orders"
 		},
 		{
 			"path": "pages/common/order-detail/order-detail"
