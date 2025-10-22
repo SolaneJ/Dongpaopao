@@ -11,6 +11,8 @@ public interface OrderService {
 
     R listOrder(String uid);
 
+    R listMyOrders(String uid, String role, String status, String type, Integer pageNum, Integer pageSize);
+
     R detailOrder(String oid);
 
     R progressingOrder(String type, String uid);

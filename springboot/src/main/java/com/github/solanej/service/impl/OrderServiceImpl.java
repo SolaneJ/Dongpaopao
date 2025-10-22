@@ -79,6 +79,30 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public R listMyOrders(String uid, String role, String status, String type, Integer pageNum, Integer pageSize) {
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<Order>()
+                .eq(Order::getXdr, uid).or().eq(Order::getJdr, uid);
+        if (role != null && !role.isEmpty()) {
+            if ("xdr".equals(role)) {
+                wrapper.eq(Order::getXdr, uid);
+            } else if ("jdr".equals(role)) {
+                wrapper.eq(Order::getJdr, uid);
+            }
+        } else {
+            wrapper.eq(Order::getXdr, uid).or().eq(Order::getJdr, uid);
+        }
+
+        if (status != null && !status.isEmpty()) {
+            wrapper.eq(Order::getStatus, status.charAt(0));
+        }
+        if (type != null && !type.isEmpty()) {
+            wrapper.eq(Order::getOrderType, type.charAt(0));
+        }
+        wrapper.orderByDesc(Order::getCreateTime);
+        return R.success(orderMapper.selectList(wrapper));
+    }
+
+    @Override
     public R detailOrder(String oid) {
         JSONObject result = new JSONObject();
 

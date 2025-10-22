@@ -33,12 +33,28 @@ public class OrderController {
     }
 
     /**
+     * 接单大厅-订单列表
+     *
      * @param uid 用户id
-     * @return 订单列表
      */
     @GetMapping("/list")
     public R listOrder(@RequestParam("uid") @Nullable String uid) {
         return orderService.listOrder(uid);
+    }
+
+    /**
+     * 我的订单列表
+     */
+    @GetMapping("/list-mine")
+    public R listMyOrders(
+            @RequestParam("uid") String uid,
+            @Nullable @RequestParam("role") String role,
+            @Nullable @RequestParam("status") String status,
+            @Nullable @RequestParam("type") String type,
+            @Nullable @RequestParam("pageNum") Integer pageNum,
+            @Nullable @RequestParam("pageSize") Integer pageSize
+    ) {
+        return orderService.listMyOrders(uid, role, status, type, pageNum, pageSize);
     }
 
     /**

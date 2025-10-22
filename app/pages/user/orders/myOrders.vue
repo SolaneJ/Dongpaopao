@@ -1,21 +1,23 @@
 <!-- myOrders.vue -->
 <template>
 	<view class="order-page">
-		<!-- 顶部选项卡和刷新按钮 -->
-		<u-tabs :list="tabList" :current="currentTab" @change="changeTab">
-			<template #right>
-				<u-icon name="list" size="21" bold @click="showFilter = true" />
-			</template>
-		</u-tabs>
+		<!-- 顶部选项卡 -->
+		<view class="tab-header">
+			<u-tabs :list="tabList" :current="currentTab" @change="changeTab">
+				<template #right>
+					<u-icon name="list" size="21" bold @click="openFilterPopup" />
+				</template>
+			</u-tabs>
+		</view>
 
-		<!-- 订单列表 -->
+		<!-- 订单列表 - 简单的view容器 -->
 		<view class="order-list">
 			<view class="order-item" v-for="order in filteredOrders" :key="order.oid" @click="navigateToDetail(order)">
 				<view class="order-header">
 					<view class="order-header-left">
 						<text class="order-id">订单号：{{ order.oid }}</text>
-						<view class="order-role-tag" :class="order.role === 'sender' ? 'sender-tag' : 'receiver-tag'">
-							{{ order.role === 'sender' ? '我下单' : '我接单' }}
+						<view class="order-role-tag" :class="order.role === 'xdr' ? 'sender-tag' : 'receiver-tag'">
+							{{ order.role === 'xdr' ? '我下单' : '我接单' }}
 						</view>
 					</view>
 					<text class="order-status" :style="{ color: getStatusColor(order.status) }">
@@ -38,8 +40,11 @@
 				</view>
 			</view>
 
-			<view class="empty-tip" v-if="filteredOrders.length === 0">
+			<!-- 空状态 -->
+			<view class="empty-state" v-if="filteredOrders.length === 0 && !loading">
+				<image class="empty-image" src="/static/images/empty-order.png" mode="aspectFit"></image>
 				<text class="empty-text">暂无订单</text>
+				<text class="empty-subtext">去发布或接取一个订单吧</text>
 			</view>
 		</view>
 
@@ -62,15 +67,15 @@
 							@click="tempFilterStatus = 'D'">
 							待接单
 						</view>
-						<view class="filter-option" :class="{ active: tempFilterStatus === 'P' }"
+						<view class="filter-option" :class="{ active: tempFilterStatus === 'J' }"
 							@click="tempFilterStatus = 'J'">
 							进行中
 						</view>
-						<view class="filter-option" :class="{ active: tempFilterStatus === 'C' }"
+						<view class="filter-option" :class="{ active: tempFilterStatus === 'S' }"
 							@click="tempFilterStatus = 'S'">
 							已完成
 						</view>
-						<view class="filter-option" :class="{ active: tempFilterStatus === 'X' }"
+						<view class="filter-option" :class="{ active: tempFilterStatus === 'C' }"
 							@click="tempFilterStatus = 'C'">
 							已取消
 						</view>
@@ -110,12 +115,12 @@
 							@click="tempFilterRole = ''">
 							全部角色
 						</view>
-						<view class="filter-option" :class="{ active: tempFilterRole === 'sender' }"
-							@click="tempFilterRole = 'sender'">
+						<view class="filter-option" :class="{ active: tempFilterRole === 'xdr' }"
+							@click="tempFilterRole = 'xdr'">
 							我下单的
 						</view>
-						<view class="filter-option" :class="{ active: tempFilterRole === 'receiver' }"
-							@click="tempFilterRole = 'receiver'">
+						<view class="filter-option" :class="{ active: tempFilterRole === 'jsr' }"
+							@click="tempFilterRole = 'jsr'">
 							我接单的
 						</view>
 					</view>
@@ -138,13 +143,17 @@
 </template>
 
 <script lang="ts" setup>
+	// 脚本部分保持不变，与之前相同
 	import { ref, computed } from 'vue';
-	import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
+	import { onLoad, onPullDownRefresh } from '@dcloudio/uni-app'
+	import request from '@/utils/request.js'
+	import { useUserStore } from '@/stores/user.js'
 
 	const currentTab = ref(0);
 	const loading = ref(false);
 	const orders = ref([]);
 	const showFilter = ref(false);
+	const userInfo = useUserStore().info
 
 	// 生效的筛选条件
 	const filterStatus = ref('');
@@ -156,7 +165,7 @@
 	const tempFilterType = ref('');
 	const tempFilterRole = ref('');
 
-	// 选项卡配置 - 添加了已取消状态
+	// 选项卡配置
 	const tabList = ref([
 		{ name: '全部订单' },
 		{ name: '待接单' },
@@ -181,85 +190,117 @@
 		'C': { text: '已取消', color: '#9E9E9E' }
 	};
 
-	// 生成模拟数据
-	const generateMockData = () => {
-		const mockOrders = [];
-		const orderTypes = ['E', 'T', 'C', 'P'];
-		const statuses = ['D', 'J', 'S', 'C'];
-		const roles = ['sender', 'receiver'];
-
-		for (let i = 1; i <= 20; i++) {
-			const type = orderTypes[Math.floor(Math.random() * orderTypes.length)];
-			const status = statuses[Math.floor(Math.random() * statuses.length)];
-			const role = roles[Math.floor(Math.random() * roles.length)];
-
-			mockOrders.push({
-				oid: `ORD${Date.now()}${i}`,
-				order_type: type,
-				amount: (Math.random() * 50 + 5).toFixed(2),
-				createTime: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-				status: status,
-				role: role,
-				detail: generateMockDetail(type)
-			});
+	// 解析订单详情
+	const parseOrderDetail = (detailStr) => {
+		if (!detailStr) return {};
+		
+		try {
+			// 如果已经是对象，直接返回
+			if (typeof detailStr === 'object') return detailStr;
+			
+			// 处理格式错误的JSON字符串
+			let fixedStr = detailStr;
+			// 修复键名没有引号的问题
+			fixedStr = fixedStr.replace(/(\w+)\s*:/g, '"$1":');
+			// 修复值没有引号的问题
+			fixedStr = fixedStr.replace(/:(\s*)([^"{}\[\],\s][^,}]*)(\s*[},])/g, ':"$2"$3');
+			
+			return JSON.parse(fixedStr);
+		} catch (e) {
+			console.error('解析订单详情失败:', e, '原始字符串:', detailStr);
+			// 尝试更简单的手动解析
+			try {
+				const result = {};
+				// 移除大括号和空格
+				const cleanStr = detailStr.replace(/[{}"]/g, '').replace(/\s/g, '');
+				const pairs = cleanStr.split(',');
+				
+				for (const pair of pairs) {
+					const [key, value] = pair.split(':');
+					if (key && value) {
+						result[key] = value;
+					}
+				}
+				console.log('手动解析结果:', result);
+				return result;
+			} catch (e2) {
+				console.error('手动解析也失败:', e2);
+				return {};
+			}
 		}
-
-		return mockOrders;
 	};
 
-	// 根据订单类型生成模拟详情
-	const generateMockDetail = (type) => {
-		switch (type) {
-			case 'E':
-				return {
-					company: ['顺丰', '中通', '圆通', '韵达'][Math.floor(Math.random() * 4)],
-					code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-					remark: '请尽快送达，谢谢！'
-				};
-			case 'T':
-				return {
-					location: '北门外卖架',
-					code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-					remark: '奶茶请小心不要洒'
-				};
-			case 'C':
-				return {
-					description: '书籍和杂物',
-					weight: `${Math.floor(Math.random() * 10) + 1}kg`,
-					remark: '请轻拿轻放'
-				};
-			case 'P':
-				return {
-					productLink: 'https://example.com/product',
-					description: '零食和饮料',
-					count: Math.floor(Math.random() * 5) + 1,
-					price: (Math.random() * 30 + 10).toFixed(2),
-					remark: '请尽快购买'
-				};
-			default:
-				return { remark: '暂无描述' };
+	// 判断订单角色
+	const getOrderRole = (order) => {
+		if (order.xdr === userInfo.uid) {
+			return 'xdr';
+		} else if (order.jdr === userInfo.uid) {
+			return 'jsr';
 		}
+		return 'xdr'; // 默认
 	};
 
 	// 加载订单列表
-	const loadOrders = () => {
+	const loadOrders = async () => {
 		loading.value = true;
-		setTimeout(() => {
-			orders.value = generateMockData();
+		try {
+			const res = await request({
+				url: "/order/list-mine",
+				data: {
+					uid: userInfo.uid,
+					role: filterRole.value,
+					status: filterStatus.value,
+					type: filterType.value
+				}
+			});
+			
+			console.log('订单列表响应:', res);
+			
+			if (res.data && Array.isArray(res.data)) {
+				// 处理订单数据，添加角色信息和解析详情
+				orders.value = res.data.map(order => {
+					const role = getOrderRole(order);
+					const detailObj = parseOrderDetail(order.detail);
+					
+					console.log(`订单 ${order.oid}:`, {
+						role,
+						detail: order.detail,
+						parsedDetail: detailObj,
+						xdr: order.xdr,
+						jdr: order.jdr,
+						userInfoUid: userInfo.uid
+					});
+					
+					return {
+						...order,
+						role,
+						detailObj
+					};
+				});
+				
+				console.log('处理后的订单列表:', orders.value);
+			} else {
+				orders.value = [];
+				console.warn('订单数据格式异常:', res);
+			}
+			
 			loading.value = false;
-			uni.stopPullDownRefresh();
-		}, 1000);
+		} catch (error) {
+			console.error('加载订单失败:', error);
+			loading.value = false;
+			orders.value = [];
+		}
 	};
 
 	// 根据订单获取图片
 	const getOrderImage = (order) => {
-		const orderType = order.order_type;
+		const orderType = order.orderType;
 		return orderTypeMap[orderType]?.image || orderTypeMap['E'].image;
 	};
 
 	// 根据订单获取类型文本
 	const getOrderTypeText = (order) => {
-		const orderType = order.order_type;
+		const orderType = order.orderType;
 		return orderTypeMap[orderType]?.text || '快递代取';
 	};
 
@@ -275,74 +316,94 @@
 
 	// 获取订单描述
 	const getOrderDesc = (order) => {
-		if (!order.detail) return '暂无描述';
-
-		try {
-			const detail = order.detail;
-			if (detail.remark) return detail.remark;
-
-			const orderType = order.order_type;
-
-			switch (orderType) {
-				case 'E':
-					return `${detail.company || ''} ${detail.code ? '取件码：****' : ''}`;
-				case 'T':
-					return `${detail.location || ''} ${detail.code ? '取件码：****' : ''}`;
-				case 'C':
-					return `${detail.description || ''} ${detail.weight || ''}`;
-				case 'P':
-					return detail.description || '商品代购';
-				default:
-					return '暂无描述';
-			}
-		} catch (e) {
+		if (!order.detailObj || Object.keys(order.detailObj).length === 0) {
 			return '暂无描述';
+		}
+
+		const detail = order.detailObj;
+		
+		// 优先显示备注
+		if (detail.remark && detail.remark !== '""' && detail.remark !== '') {
+			return detail.remark;
+		}
+
+		const orderType = order.orderType;
+
+		switch (orderType) {
+			case 'E':
+				return `${detail.company || ''} ${detail.location || ''}`.trim() || '快递代取订单';
+			case 'T':
+				return `${detail.location || ''} ${detail.code ? '取件码：****' : ''}`.trim() || '外卖代取订单';
+			case 'C':
+				return `${detail.description || ''} ${detail.weight || ''}`.trim() || '物品搬运订单';
+			case 'P':
+				return detail.description || '商品代购订单';
+			default:
+				return '订单详情';
 		}
 	};
 
 	// 格式化时间
 	const formatTime = (time) => {
 		if (!time) return '刚刚';
-		if (typeof time === 'string' && time.includes('月')) return time;
 		const date = new Date(time);
 		return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 	};
 
-	// 筛选订单 - 只使用生效的筛选条件
+	// 筛选订单
 	const filteredOrders = computed(() => {
-		let filtered = orders.value;
+		console.log('开始筛选订单，总数:', orders.value.length);
+		console.log('当前筛选条件:', {
+			currentTab: currentTab.value,
+			filterStatus: filterStatus.value,
+			filterType: filterType.value,
+			filterRole: filterRole.value
+		});
 
-		// 按顶部选项卡筛选
-		if (currentTab.value !== 0) {
+		let filtered = [...orders.value];
+
+		// 按顶部选项卡筛选（只在没有高级筛选时生效）
+		if (currentTab.value !== 0 && !filterStatus.value) {
 			const tabStatusMap = {
 				1: 'D', // 待接单
-				2: 'P', // 进行中
-				3: 'C', // 已完成
-				4: 'X'  // 已取消
+				2: 'J', // 进行中
+				3: 'S', // 已完成
+				4: 'C'  // 已取消
 			};
 			const targetStatus = tabStatusMap[currentTab.value];
+			console.log('按选项卡筛选，目标状态:', targetStatus);
 			filtered = filtered.filter(order => order.status === targetStatus);
+			console.log('选项卡筛选后数量:', filtered.length);
 		}
 
 		// 按生效的高级筛选条件筛选
 		if (filterStatus.value) {
+			console.log('按状态筛选:', filterStatus.value);
 			filtered = filtered.filter(order => order.status === filterStatus.value);
+			console.log('状态筛选后数量:', filtered.length);
 		}
 
 		if (filterType.value) {
-			filtered = filtered.filter(order => order.order_type === filterType.value);
+			console.log('按类型筛选:', filterType.value);
+			filtered = filtered.filter(order => order.orderType === filterType.value);
+			console.log('类型筛选后数量:', filtered.length);
 		}
 
 		if (filterRole.value) {
+			console.log('按角色筛选:', filterRole.value);
 			filtered = filtered.filter(order => order.role === filterRole.value);
+			console.log('角色筛选后数量:', filtered.length);
 		}
 
+		console.log('最终筛选结果数量:', filtered.length);
 		return filtered;
 	});
 
 	// 切换选项卡
 	const changeTab = (item) => {
 		currentTab.value = item.index;
+		// 切换到选项卡时清空高级筛选的状态条件
+		filterStatus.value = '';
 	};
 
 	// 打开筛选弹窗时，将生效的筛选条件复制到临时条件
@@ -366,8 +427,9 @@
 		filterType.value = tempFilterType.value;
 		filterRole.value = tempFilterRole.value;
 		showFilter.value = false;
-		// 重置顶部选项卡到"全部订单"
+		// 应用高级筛选时，重置顶部选项卡到"全部订单"
 		currentTab.value = 0;
+		loadOrders();
 	};
 
 	// 刷新数据
@@ -383,18 +445,21 @@
 	// 跳转到订单详情页
 	const navigateToDetail = (order) => {
 		uni.navigateTo({
-			url: `/pages/common/order-detail/order-detail?oid=${order.oid}&orderType=${order.order_type}`
+			url: `/pages/common/order-detail/order-detail?oid=${order.oid}&orderType=${order.orderType}`
 		});
 	};
 
 	// 页面显示时加载数据
-	onShow(() => {
+	onLoad(() => {
 		loadOrders();
 	});
 
 	// 下拉刷新
 	onPullDownRefresh(() => {
 		loadOrders();
+		setTimeout(() => {
+			uni.stopPullDownRefresh();
+		}, 1000);
 	});
 </script>
 
@@ -406,10 +471,14 @@
 		background-color: #f5f5f5;
 	}
 
+	.tab-header {
+		flex-shrink: 0;
+		background-color: #fff;
+	}
+
 	.order-list {
 		flex: 1;
-		overflow-y: auto;
-		padding: 20rpx;
+		height: 100%;
 	}
 
 	.order-item {
@@ -523,17 +592,33 @@
 		display: flex;
 	}
 
-	.empty-tip {
+	/* 空状态样式 */
+	.empty-state {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		padding: 100rpx 0;
+		height: 100%;
+		padding: 120rpx 40rpx;
+		text-align: center;
+	}
+
+	.empty-image {
+		width: 200rpx;
+		height: 200rpx;
+		margin-bottom: 40rpx;
+		opacity: 0.6;
 	}
 
 	.empty-text {
-		font-size: 28rpx;
+		font-size: 32rpx;
 		color: #999;
+		margin-bottom: 16rpx;
+	}
+
+	.empty-subtext {
+		font-size: 26rpx;
+		color: #ccc;
 	}
 
 	/* 筛选弹窗样式 */
