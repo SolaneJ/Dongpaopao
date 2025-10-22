@@ -5,7 +5,7 @@
 		<u-title>费用明细</u-title>
 		<view class="fee-item">
 			<text>基础配送费</text>
-			<text>¥{{ baseFee }}</text>
+			<u-input inputAlign="right" type="number" border="none" maxlength="4" v-model.number="baseFee"/>
 		</view>
 		<view class="total-fee">
 			<text>总计</text>
