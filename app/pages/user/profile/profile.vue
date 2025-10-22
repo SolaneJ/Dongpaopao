@@ -92,7 +92,7 @@
 					icon: 'none',
 				})
 				// 
-				userInfo.avatar = JSON.parse(res.data).data
+				userInfo.avatar = JSON.parse(res.data).data + "?t=" + Date.now()
 			}
 		})
 	};
