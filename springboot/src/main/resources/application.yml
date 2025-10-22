@@ -15,6 +15,10 @@ spring:
     redis:
       host: localhost
       port: 6379
+  ai:
+    ollama:
+      chat:
+        model: gemma3:4b
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -25,7 +29,6 @@ mybatis:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
 
 # 打印 AOP 代理创建和切入点匹配详情
 #logging:
