@@ -33,10 +33,20 @@
 					</view>
 				</view>
 				<view class="order-footer">
-					<text class="order-time">{{ formatTime(order.createTime) }}</text>
-					<view class="order-actions">
-						<u-icon name="arrow-right-double" />
-					</view>
+					<text class="order-time">
+						<text v-if="order.status==='S'">
+							完成时间：{{formatTime(order.completeTime)}}
+						</text>
+						<text v-else-if="order.status==='C'">
+							已取消
+						</text>
+						<text v-else>
+							期望送达时间：{{formatTime(order.expectTime)}}
+						</text>
+						<view class="order-actions">
+							<u-icon name="arrow-right-double" />
+						</view>
+					</text>
 				</view>
 			</view>
 
@@ -193,18 +203,18 @@
 	// 解析订单详情
 	const parseOrderDetail = (detailStr) => {
 		if (!detailStr) return {};
-		
+
 		try {
 			// 如果已经是对象，直接返回
 			if (typeof detailStr === 'object') return detailStr;
-			
+
 			// 处理格式错误的JSON字符串
 			let fixedStr = detailStr;
 			// 修复键名没有引号的问题
 			fixedStr = fixedStr.replace(/(\w+)\s*:/g, '"$1":');
 			// 修复值没有引号的问题
 			fixedStr = fixedStr.replace(/:(\s*)([^"{}\[\],\s][^,}]*)(\s*[},])/g, ':"$2"$3');
-			
+
 			return JSON.parse(fixedStr);
 		} catch (e) {
 			console.error('解析订单详情失败:', e, '原始字符串:', detailStr);
@@ -214,7 +224,7 @@
 				// 移除大括号和空格
 				const cleanStr = detailStr.replace(/[{}"]/g, '').replace(/\s/g, '');
 				const pairs = cleanStr.split(',');
-				
+
 				for (const pair of pairs) {
 					const [key, value] = pair.split(':');
 					if (key && value) {
@@ -253,15 +263,15 @@
 					type: filterType.value
 				}
 			});
-			
+
 			console.log('订单列表响应:', res);
-			
+
 			if (res.data && Array.isArray(res.data)) {
 				// 处理订单数据，添加角色信息和解析详情
 				orders.value = res.data.map(order => {
 					const role = getOrderRole(order);
 					const detailObj = parseOrderDetail(order.detail);
-					
+
 					console.log(`订单 ${order.oid}:`, {
 						role,
 						detail: order.detail,
@@ -270,20 +280,20 @@
 						jdr: order.jdr,
 						userInfoUid: userInfo.uid
 					});
-					
+
 					return {
 						...order,
 						role,
 						detailObj
 					};
 				});
-				
+
 				console.log('处理后的订单列表:', orders.value);
 			} else {
 				orders.value = [];
 				console.warn('订单数据格式异常:', res);
 			}
-			
+
 			loading.value = false;
 		} catch (error) {
 			console.error('加载订单失败:', error);
@@ -321,7 +331,7 @@
 		}
 
 		const detail = order.detailObj;
-		
+
 		// 优先显示备注
 		if (detail.remark && detail.remark !== '""' && detail.remark !== '') {
 			return detail.remark;

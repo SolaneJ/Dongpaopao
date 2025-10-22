@@ -9,6 +9,8 @@ public interface OrderService {
 
     R acceptOrder(JSONObject params);
 
+    R updateOrderStatus(JSONObject params);
+
     R listOrder(String uid);
 
     R listMyOrders(String uid, String role, String status, String type, Integer pageNum, Integer pageSize);

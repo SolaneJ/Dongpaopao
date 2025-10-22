@@ -33,6 +33,14 @@ public class OrderController {
     }
 
     /**
+     * 更新订单状态
+     */
+    @PutMapping("/status")
+    public R updateOrderStatus(@RequestBody JSONObject params) {
+        return orderService.updateOrderStatus(params);
+    }
+
+    /**
      * 接单大厅-订单列表
      *
      * @param uid 用户id

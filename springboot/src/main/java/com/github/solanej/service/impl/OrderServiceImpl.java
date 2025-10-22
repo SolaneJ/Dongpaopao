@@ -69,6 +69,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public R updateOrderStatus(JSONObject params) {
+        String oid = params.getString("oid");
+        String status = params.getString("status");
+
+        orderMapper.update(new LambdaUpdateWrapper<Order>()
+                .set(Order::getStatus, status.charAt(0))
+                .set(Order::getCompleteTime, LocalDateTime.now())
+                .eq(Order::getOid, oid));
+        return R.success();
+    }
+
+    @Override
     public R listOrder(String uid) {
         List<Order> orders = orderMapper.selectList(
                 new LambdaQueryWrapper<Order>()
@@ -111,7 +123,7 @@ public class OrderServiceImpl implements OrderService {
         // 地址
         result.put("address", addressMapper.selectById(order.getAid()));
         // 如果已接单，就查询会话信息
-        if (order.getStatus() != 'D') {
+        if (order.getStatus() != 'D' && order.getStatus() != 'C') {
             Conversation conversation = conversationMapper.selectOne(new LambdaQueryWrapper<Conversation>().eq(Conversation::getOid, oid));
             result.put("conversationId", conversation.getCid());
         }

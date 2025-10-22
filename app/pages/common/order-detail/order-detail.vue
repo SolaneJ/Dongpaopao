@@ -350,9 +350,12 @@
 
 						try {
 							const result = await request({
-								url: '/order/complete',
-								method: 'POST',
-								data: { oid: orderDetail.value.oid }
+								url: '/order/status',
+								method: 'PUT',
+								data: {
+									oid: orderDetail.value.oid,
+									status: 'S'
+								}
 							});
 
 							if (result.errCode === 0) {
@@ -400,9 +403,12 @@
 
 						try {
 							const result = await request({
-								url: '/order/cancel',
-								method: 'POST',
-								data: { oid: orderDetail.value.oid }
+								url: '/order/status',
+								method: 'PUT',
+								data: {
+									oid: orderDetail.value.oid,
+									status: 'C'
+								}
 							});
 
 							if (result.errCode === 0) {
