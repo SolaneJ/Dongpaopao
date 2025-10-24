@@ -1,5 +1,6 @@
 package com.github.solanej.service.impl;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.github.solanej.common.R;
 import com.github.solanej.entity.User;
 import com.github.solanej.mapper.UserMapper;
@@ -11,6 +12,8 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -55,5 +58,28 @@ public class UserServiceImpl implements UserService {
         user.setAvatar(avatarUrl);
         userMapper.updateById(user);
         return R.success(avatarUrl);
+    }
+
+    @Override
+    public R recharge(JSONObject params) {
+        String uid = params.getString("uid");
+        BigDecimal amount = params.getBigDecimal("amount");
+        User user = userMapper.selectById(uid);
+        user.setBalance(user.getBalance().add(amount));
+        userMapper.updateById(user);
+        return R.success();
+    }
+
+    @Override
+    public R withdraw(JSONObject params) {
+        String uid = params.getString("uid");
+        BigDecimal amount = params.getBigDecimal("amount");
+        User user = userMapper.selectById(uid);
+        if (user.getBalance().compareTo(amount) < 0) {
+            return R.error("余额不足");
+        }
+        user.setBalance(user.getBalance().subtract(amount));
+        userMapper.updateById(user);
+        return R.success();
     }
 }

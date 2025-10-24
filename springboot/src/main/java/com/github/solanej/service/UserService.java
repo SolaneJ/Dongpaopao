@@ -1,10 +1,9 @@
 package com.github.solanej.service;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.github.solanej.common.R;
 import com.github.solanej.entity.User;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.math.BigDecimal;
 
 public interface UserService{
 
@@ -16,7 +15,7 @@ public interface UserService{
 
     R uploadAvatar(MultipartFile file, String uid);
 
-    R recharge(String uid, BigDecimal amount);
+    R recharge(JSONObject params);
 
-     R withdraw(String uid, BigDecimal amount);
+     R withdraw(JSONObject params);
 }

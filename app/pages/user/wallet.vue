@@ -106,7 +106,7 @@
 				</view>
 
 				<view class="popup-footer">
-					<u-button text="立即充值" :disabled="!rechargeAmount || rechargeError" color="#07c160"
+					<u-button text="立即充值" :loading="rechargeLoading" color="#07c160"
 						customStyle="margin: 20rpx 0;" @click="confirmRecharge"></u-button>
 				</view>
 			</view>
@@ -150,7 +150,7 @@
 				</view>
 
 				<view class="popup-footer">
-					<u-button text="确认提现" :disabled="!withdrawAmount || withdrawError" color="#07c160"
+					<u-button text="确认提现" :loading="withdrawLoading" color="#07c160"
 						customStyle="margin: 20rpx 0;" @click="confirmWithdraw"></u-button>
 				</view>
 			</view>
@@ -175,6 +175,8 @@ const showRecharge = ref(false)
 const showWithdraw = ref(false)
 const loading: Ref<boolean> = ref(false)
 const transactionRecords: Ref<any[]> = ref([])
+const rechargeLoading = ref(false)
+const withdrawLoading = ref(false)
 
 // 微信用户信息
 const wechatInfo = ref({
@@ -233,27 +235,41 @@ onShow(async () => {
 const loadWalletData = async () => {
 	loading.value = true
 	try {
+		console.log('开始加载钱包数据，用户ID:', userInfo.uid)
+		
 		// 获取用户余额
+		console.log('请求余额接口...')
 		await request({
 			url: "/user/balance?uid=" + userInfo.uid
 		}).then((res) => {
-			console.log('余额数据:', res)
+			console.log('余额接口响应:', res)
 			totalBalance.value = res.data || 0
 		})
 
 		// 获取交易记录
+		console.log('请求交易记录接口...')
+		const transactionUrl = "/transaction/list?uid=" + userInfo.uid
+		console.log('交易记录接口URL:', transactionUrl)
+		
 		await request({
-			url: "/transaction/list?uid=" + userInfo.uid
+			url: transactionUrl
 		}).then((res) => {
-			console.log('交易记录数据:', res)
+			console.log('交易记录接口完整响应:', res)
+			console.log('交易记录数据:', res.data)
+			
 			if (res.data && Array.isArray(res.data)) {
+				console.log(`获取到 ${res.data.length} 条交易记录`)
 				transactionRecords.value = res.data.sort((a, b) => 
 					new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
 				)
 			} else {
+				console.log('交易记录数据格式异常:', res.data)
 				transactionRecords.value = []
 			}
+		}).catch((error) => {
+			console.error('交易记录接口请求失败:', error)
 		})
+		
 	} catch (error) {
 		console.error('加载钱包数据失败:', error)
 		uni.showToast({
@@ -262,6 +278,7 @@ const loadWalletData = async () => {
 		})
 	} finally {
 		loading.value = false
+		console.log('钱包数据加载完成')
 	}
 }
 
@@ -387,37 +404,58 @@ const validateRechargeAmount = () => {
 	}
 }
 
-const confirmRecharge = () => {
+const confirmRecharge = async () => {
 	if (!rechargeAmount.value || rechargeError.value) return
 
-	uni.showLoading({
-		title: '调起微信支付...'
-	})
+	rechargeLoading.value = true
 
-	setTimeout(() => {
-		uni.hideLoading()
-		uni.showToast({
-			title: `充值成功 ¥${rechargeAmount.value}`,
-			icon: 'success'
+	try {
+		const amount = parseFloat(rechargeAmount.value)
+		
+		console.log('发起充值请求:', {
+			uid: userInfo.uid,
+			amount: amount
 		})
 
-		// 更新余额
-		const amount = parseFloat(rechargeAmount.value)
-		totalBalance.value += amount
+		const res = await request({
+			url: '/user/recharge',
+			method: 'PUT',
+			data: {
+				uid: userInfo.uid,
+				amount: amount
+			}
+		})
 
-		// 添加交易记录
-		const newRecord = {
-			tid: 'recharge_' + Date.now(),
-			oid: null,
-			uid: userInfo.uid,
-			amount: amount,
-			type: 'RECHARGE',
-			create_time: new Date().toISOString()
+		console.log('充值接口响应:', res)
+
+		if (res.code === 200) {
+			uni.showToast({
+				title: `充值成功 ¥${rechargeAmount.value}`,
+				icon: 'success'
+			})
+
+			// 更新余额
+			totalBalance.value += amount
+
+			// 重新加载交易记录
+			await loadTransactionRecords()
+
+			hideRechargeDialog()
+		} else {
+			uni.showToast({
+				title: res.msg || '充值失败',
+				icon: 'error'
+			})
 		}
-		transactionRecords.value.unshift(newRecord)
-
-		hideRechargeDialog()
-	}, 2000)
+	} catch (error) {
+		console.error('充值请求失败:', error)
+		uni.showToast({
+			title: '充值失败，请重试',
+			icon: 'error'
+		})
+	} finally {
+		rechargeLoading.value = false
+	}
 }
 
 // 提现功能
@@ -446,37 +484,75 @@ const validateWithdrawAmount = () => {
 	}
 }
 
-const confirmWithdraw = () => {
+const confirmWithdraw = async () => {
 	if (!withdrawAmount.value || withdrawError.value) return
 
-	uni.showLoading({
-		title: '处理中...'
-	})
+	withdrawLoading.value = true
 
-	setTimeout(() => {
-		uni.hideLoading()
-		uni.showToast({
-			title: '提现申请已提交',
-			icon: 'success'
+	try {
+		const amount = parseFloat(withdrawAmount.value)
+		
+		console.log('发起提现请求:', {
+			uid: userInfo.uid,
+			amount: amount
 		})
 
-		// 更新余额
-		const amount = parseFloat(withdrawAmount.value)
-		totalBalance.value -= amount
+		const res = await request({
+			url: '/user/withdraw',
+			method: 'PUT',
+			data: {
+				uid: userInfo.uid,
+				amount: amount
+			}
+		})
 
-		// 添加交易记录
-		const newRecord = {
-			tid: 'withdraw_' + Date.now(),
-			oid: null,
-			uid: userInfo.uid,
-			amount: amount,
-			type: 'WITHDRAWAL',
-			create_time: new Date().toISOString()
+		console.log('提现接口响应:', res)
+
+		if (res.code === 200) {
+			uni.showToast({
+				title: '提现申请已提交',
+				icon: 'success'
+			})
+
+			// 更新余额
+			totalBalance.value -= amount
+
+			// 重新加载交易记录
+			await loadTransactionRecords()
+
+			hideWithdrawDialog()
+		} else {
+			uni.showToast({
+				title: res.msg || '提现失败',
+				icon: 'error'
+			})
 		}
-		transactionRecords.value.unshift(newRecord)
+	} catch (error) {
+		console.error('提现请求失败:', error)
+		uni.showToast({
+			title: '提现失败，请重试',
+			icon: 'error'
+		})
+	} finally {
+		withdrawLoading.value = false
+	}
+}
 
-		hideWithdrawDialog()
-	}, 1500)
+// 单独加载交易记录
+const loadTransactionRecords = async () => {
+	try {
+		const res = await request({
+			url: "/transaction/list?uid=" + userInfo.uid
+		})
+		
+		if (res.data && Array.isArray(res.data)) {
+			transactionRecords.value = res.data.sort((a, b) => 
+				new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
+			)
+		}
+	} catch (error) {
+		console.error('加载交易记录失败:', error)
+	}
 }
 </script>
 

@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
@@ -64,5 +66,17 @@ public class UserController {
     @ApiOperation("上传头像")
     public R uploadAvatar(@RequestParam("file") MultipartFile file, @RequestParam("uid") String uid) {
         return userService.uploadAvatar(file, uid);
+    }
+
+    @PutMapping("/recharge")
+    @ApiOperation("充值")
+    public R recharge(@RequestBody JSONObject params) {
+        return userService.recharge(params);
+    }
+
+    @PutMapping("/withdraw")
+    @ApiOperation("提现")
+    public R withdraw(@RequestBody JSONObject params) {
+        return userService.withdraw(params);
     }
 }
