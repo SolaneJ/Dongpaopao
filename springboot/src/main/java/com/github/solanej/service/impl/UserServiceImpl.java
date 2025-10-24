@@ -1,6 +1,5 @@
 package com.github.solanej.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.solanej.common.R;
 import com.github.solanej.config.OSSConfig;
 import com.github.solanej.entity.User;
@@ -32,6 +31,12 @@ public class UserServiceImpl implements UserService {
     public R getUserInfo(String uId) {
         User user = userMapper.selectById(uId);
         return R.success(user);
+    }
+
+    @Override
+    public R getBalance(String uid) {
+        User user = userMapper.selectById(uid);
+        return R.success(user.getBalance());
     }
 
     @Override

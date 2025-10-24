@@ -18,6 +18,11 @@ function request(options) {
 		uni.request({
 			...config,
 			success: (res) => {
+				if (res.data && res.data.errCode === 11) {
+					uni.showToast({
+						title: res.msg
+					})
+				}
 				resolve(res.data)
 			},
 			fail: (err) => {
@@ -35,6 +40,9 @@ function request(options) {
 		})
 	})
 }
+
+// 挂载到 uni 对象
+uni.$request = request
 
 // 默认导出
 export default request

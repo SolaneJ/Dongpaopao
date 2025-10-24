@@ -66,7 +66,7 @@
 	import { ref } from 'vue';
 	import request from '@/utils/request.js'
 	import { useUserStore } from '@/stores/user.js'
-	import { onLoad } from '@dcloudio/uni-app'
+	import { onShow } from '@dcloudio/uni-app'
 
 	const userInfo = useUserStore().info
 
@@ -79,7 +79,7 @@
 	};
 
 	// Uniapp 生命周期
-	onLoad(() => {
+	onShow(() => {
 		fetchActiveOrders();
 	})
 
@@ -97,7 +97,7 @@
 	// 获取进行中订单
 	const fetchActiveOrders = async () => {
 		request({
-			url: '/order/progressing?uid=' + userInfo.uid,
+			url: '/order/progressing?type=jdr&uid=' + userInfo.uid,
 		}).then((res) => {
 			activeOrders.value = res.data
 		})

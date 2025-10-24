@@ -4,14 +4,8 @@
 		<view class="balance-card">
 			<view class="card-content">
 				<view class="balance-info">
-					<text class="balance-label">总余额</text>
+					<text class="balance-label">余额</text>
 					<text class="balance-amount">¥{{ formatAmount(totalBalance) }}</text>
-					<view class="balance-details">
-						<view class="detail-item">
-							<text class="detail-label">可用余额</text>
-							<text class="detail-value">¥{{ formatAmount(availableBalance) }}</text>
-						</view>
-					</view>
 				</view>
 				<view class="card-decoration">
 					<view class="decoration-circle circle-1"></view>
@@ -126,7 +120,7 @@
 				</view>
 
 				<view class="popup-body">
-					<u-notice-bar :text="`可提现金额：¥${formatAmount(availableBalance)}`" bgColor="#f0f9ff" color="#07c160"
+					<u-notice-bar :text="`可提现金额：¥${formatAmount(totalBalance)}`" bgColor="#f0f9ff" color="#07c160"
 						icon="info-circle"></u-notice-bar>
 
 					<view class="amount-input-section">
@@ -161,21 +155,41 @@
 				</view>
 			</view>
 		</u-popup>
+
+		<u-loading-page :loading="loading" />
 	</view>
 </template>
 
-<script setup>
+<script setup lang="ts">
 	import {
 		ref,
-		computed
+		computed,
+		Ref
 	} from 'vue'
+	import { useUserStore } from '@/stores/user'
+	import request from '@/utils/request'
+	import { onShow } from '@dcloudio/uni-app'
+
+	const userInfo = useUserStore().info
+
+	onShow(async () => {
+		// 获取用户余额
+		loading.value = true;
+		await request({
+			url: "/user/balance?uid=" + userInfo.uid
+		}).then((res) => {
+			console.log(res);
+			totalBalance.value = res.data
+		});
+		loading.value = false;
+	})
 
 	// 响应式数据
-	const totalBalance = ref(5680.50)
-	const availableBalance = ref(5680.50)
+	const totalBalance : Ref<number> = ref(5680.50)
 	const currentTab = ref(0)
 	const showRecharge = ref(false)
 	const showWithdraw = ref(false)
+	const loading : Ref<boolean> = ref(false)
 
 	// 微信用户信息
 	const wechatInfo = ref({
@@ -194,96 +208,96 @@
 
 	// 操作按钮配置
 	const actions = ref([{
-			type: 'recharge',
-			text: '充值',
-			icon: '💳'
-		},
-		{
-			type: 'withdraw',
-			text: '提现',
-			icon: '💰'
-		}
+		type: 'recharge',
+		text: '充值',
+		icon: '💳'
+	},
+	{
+		type: 'withdraw',
+		text: '提现',
+		icon: '💰'
+	}
 	])
 
 	// 标签页配置
 	const tabList = ref([{
-			name: '全部'
-		},
-		{
-			name: '收入'
-		},
-		{
-			name: '支出'
-		}
+		name: '全部'
+	},
+	{
+		name: '收入'
+	},
+	{
+		name: '支出'
+	}
 	])
 
 	// 交易记录数据
 	const records = ref([{
-			id: 1,
-			type: '微信充值',
-			desc: '账户充值',
-			amount: 500.00,
-			time: '10-15 09:30'
-		},
-		{
-			id: 2,
-			type: '餐饮消费',
-			desc: '海底捞火锅',
-			amount: -268.50,
-			time: '10-14 18:45'
-		},
-		{
-			id: 3,
-			type: '购物消费',
-			desc: '微信小程序购物',
-			amount: -456.80,
-			time: '10-13 15:20'
-		},
-		{
-			id: 4,
-			type: '微信提现',
-			desc: '提现到微信零钱',
-			amount: -1000.00,
-			time: '10-12 10:15'
-		},
-		{
-			id: 5,
-			type: '转账收入',
-			desc: '微信好友转账',
-			amount: 200.00,
-			time: '10-11 14:30'
-		},
-		{
-			id: 6,
-			type: '交通出行',
-			desc: '微信乘车码',
-			amount: -8.00,
-			time: '10-10 08:20'
-		},
-		{
-			id: 7,
-			type: '退款收入',
-			desc: '微信支付退款',
-			amount: 198.00,
-			time: '10-09 16:40'
-		},
-		{
-			id: 8,
-			type: '娱乐消费',
-			desc: '微信小程序游戏',
-			amount: -68.00,
-			time: '10-08 20:15'
-		}
+		id: 1,
+		type: '微信充值',
+		desc: '账户充值',
+		amount: 500.00,
+		time: '10-15 09:30'
+	},
+	{
+		id: 2,
+		type: '餐饮消费',
+		desc: '海底捞火锅',
+		amount: -268.50,
+		time: '10-14 18:45'
+	},
+	{
+		id: 3,
+		type: '购物消费',
+		desc: '微信小程序购物',
+		amount: -456.80,
+		time: '10-13 15:20'
+	},
+	{
+		id: 4,
+		type: '微信提现',
+		desc: '提现到微信零钱',
+		amount: -1000.00,
+		time: '10-12 10:15'
+	},
+	{
+		id: 5,
+		type: '转账收入',
+		desc: '微信好友转账',
+		amount: 200.00,
+		time: '10-11 14:30'
+	},
+	{
+		id: 6,
+		type: '交通出行',
+		desc: '微信乘车码',
+		amount: -8.00,
+		time: '10-10 08:20'
+	},
+	{
+		id: 7,
+		type: '退款收入',
+		desc: '微信支付退款',
+		amount: 198.00,
+		time: '10-09 16:40'
+	},
+	{
+		id: 8,
+		type: '娱乐消费',
+		desc: '微信小程序游戏',
+		amount: -68.00,
+		time: '10-08 20:15'
+	}
 	])
 
 	// 格式化金额
-	const formatAmount = (amount) => {
+	const formatAmount = (amount : number) => {
 		return Math.abs(amount).toFixed(2)
 	}
 
 	// 获取记录类型样式
-	const getRecordTypeClass = (type) => {
-		const typeMap = {
+	const getRecordTypeClass = (type : string) => {
+		const typeMap : Record<string, string> = {
 			'微信充值': 'recharge',
 			'微信提现': 'withdraw',
 			'转账收入': 'transfer',
@@ -297,8 +311,8 @@
 	}
 
 	// 获取记录图标
-	const getRecordIcon = (type) => {
-		const iconMap = {
+	const getRecordIcon = (type : string) => {
+		const iconMap : Record<string, string> = {
 			'微信充值': '💳',
 			'微信提现': '💰',
 			'转账收入': '🔄',
@@ -312,7 +326,7 @@
 	}
 
 	// 获取金额样式
-	const getAmountClass = (amount) => {
+	const getAmountClass = (amount : number) => {
 		return amount > 0 ? 'income' : 'expense'
 	}
 
@@ -329,12 +343,12 @@
 	})
 
 	// 标签页切换
-	const onTabChange = (index) => {
+	const onTabChange = (index : number) => {
 		currentTab.value = index
 	}
 
 	// 操作处理
-	const handleAction = (type) => {
+	const handleAction = (type : string) => {
 		switch (type) {
 			case 'recharge':
 				showRechargeDialog()
@@ -356,7 +370,7 @@
 		showRecharge.value = false
 	}
 
-	const setRechargeAmount = (amount) => {
+	const setRechargeAmount = (amount : number) => {
 		rechargeAmount.value = amount.toString()
 		validateRechargeAmount()
 	}
@@ -390,7 +404,6 @@
 
 			// 更新余额
 			const amount = parseFloat(rechargeAmount.value)
-			availableBalance.value += amount
 			totalBalance.value += amount
 
 			// 添加交易记录
@@ -423,8 +436,8 @@
 			withdrawError.value = '请输入有效金额'
 		} else if (amount < 1) {
 			withdrawError.value = '提现金额不能少于1元'
-		} else if (amount > availableBalance.value) {
-			withdrawError.value = '提现金额不能超过可用余额'
+		} else if (amount > totalBalance.value) {
+			withdrawError.value = '提现金额不能超过总余额'
 		} else if (amount > 50000) {
 			withdrawError.value = '单笔提现不能超过50,000元'
 		} else {
@@ -448,7 +461,6 @@
 
 			// 更新余额
 			const amount = parseFloat(withdrawAmount.value)
-			availableBalance.value -= amount
 			totalBalance.value -= amount
 
 			// 添加交易记录
@@ -501,28 +513,6 @@
 		font-size: 64rpx;
 		font-weight: bold;
 		margin-bottom: 30rpx;
-	}
-
-	.balance-details {
-		display: flex;
-		gap: 40rpx;
-	}
-
-	.detail-item {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.detail-label {
-		color: rgba(255, 255, 255, 0.8);
-		font-size: 24rpx;
-		margin-bottom: 8rpx;
-	}
-
-	.detail-value {
-		color: white;
-		font-size: 28rpx;
-		font-weight: 600;
 	}
 
 	/* 卡片装饰 */

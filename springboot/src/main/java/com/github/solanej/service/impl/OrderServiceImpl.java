@@ -6,13 +6,18 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.github.solanej.common.R;
 import com.github.solanej.entity.Conversation;
 import com.github.solanej.entity.Order;
+import com.github.solanej.entity.User;
 import com.github.solanej.mapper.AddressMapper;
 import com.github.solanej.mapper.ConversationMapper;
 import com.github.solanej.mapper.OrderMapper;
+import com.github.solanej.mapper.UserMapper;
 import com.github.solanej.service.OrderService;
+import com.github.solanej.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,27 +31,62 @@ public class OrderServiceImpl implements OrderService {
 
     private final ConversationMapper conversationMapper;
 
-    @Override
-    public R createOrder(JSONObject params) {
+    private final TransactionService transactionService;
 
+    private final UserMapper userMapper;
+
+    @Override
+    @Transactional
+    public R createOrder(JSONObject params) {
         JSONObject deliverInfo = params.getJSONObject("deliverInfo");
         JSONObject feeInfo = params.getJSONObject("feeInfo");
 
-        Order order = new Order();
-        // 下单人
-        order.setXdr(params.getString("uid"));
-        // 期望送达时间
-//        order.setExpectTime(deliverInfo.get("expectTime"));
-        // 订单类型
-        order.setOrderType(params.getString("type").charAt(0));
-        // 地址
-        order.setAid(deliverInfo.getString("aid"));
-        // 订单数据
-        order.setDetail(params.getString("businessInfo"));
-        // 金额
-        order.setAmount(feeInfo.getBigDecimal("totalFee"));
+        BigDecimal totalFee = feeInfo.getBigDecimal("totalFee");
+        String uid = params.getString("uid");
 
-        orderMapper.insert(order);
+        // 参数校验
+        if (totalFee == null || totalFee.compareTo(BigDecimal.ZERO) <= 0) {
+            return R.error("金额非法");
+        }
+
+        // 1. 先扣减余额（原子操作）
+        boolean deductSuccess = userMapper.update(null, new LambdaUpdateWrapper<User>()
+                .setSql("balance = balance - " + totalFee)
+                .eq(User::getUid, uid)
+                .ge(User::getBalance, totalFee)) > 0;
+
+        if (!deductSuccess) {
+            return R.error("余额不足");
+        }
+
+        // 2. 创建订单
+        Order order = new Order();
+        order.setXdr(uid);
+        order.setOrderType(params.getString("type").charAt(0));
+        order.setExpectTime(params.getLocalDateTime("expectTime"));
+        order.setAid(deliverInfo.getString("aid"));
+        order.setDetail(params.getString("businessInfo"));
+        order.setAmount(totalFee);
+        order.setStatus('D');
+        order.setCreateTime(LocalDateTime.now());
+
+        int insertResult = orderMapper.insert(order);
+        if (insertResult <= 0) {
+            // 如果订单创建失败，需要回滚余额（这里需要事务支持）
+            userMapper.update(null, new LambdaUpdateWrapper<User>()
+                    .setSql("balance = balance + " + totalFee)
+                    .eq(User::getUid, uid));
+            return R.error("创建订单失败");
+        }
+
+        // 3. 记录交易流水
+        JSONObject transactionParam = new JSONObject();
+        transactionParam.put("oid", order.getOid());
+        transactionParam.put("uid", uid);
+        transactionParam.put("type", "ORDER");
+        transactionParam.put("amount", totalFee);
+        transactionService.create(transactionParam);
+
         return R.success();
     }
 
@@ -69,14 +109,69 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public R updateOrderStatus(JSONObject params) {
         String oid = params.getString("oid");
         String status = params.getString("status");
 
-        orderMapper.update(new LambdaUpdateWrapper<Order>()
+        // 先查询订单信息，获取金额和用户ID
+        Order order = orderMapper.selectOne(new LambdaQueryWrapper<Order>()
+                .eq(Order::getOid, oid));
+
+        if (order == null) {
+            return R.error("订单不存在");
+        }
+
+        // 更新订单状态
+        int updateResult = orderMapper.update(new LambdaUpdateWrapper<Order>()
                 .set(Order::getStatus, status.charAt(0))
                 .set(Order::getCompleteTime, LocalDateTime.now())
                 .eq(Order::getOid, oid));
+
+        if (updateResult <= 0) {
+            return R.error("更新订单状态失败");
+        }
+
+        // 如果状态更新为已完成（S），则处理金额返还和流水记录
+        if ('S' == status.charAt(0)) {
+            // 1. 将金额返还给用户（增加余额）
+            boolean refundSuccess = userMapper.update(null, new LambdaUpdateWrapper<User>()
+                    .setSql("balance = balance + " + order.getAmount())
+                    .eq(User::getUid, order.getJdr())) > 0;
+
+            if (!refundSuccess) {
+                throw new RuntimeException("返还金额失败");
+            }
+
+            // 2. 在流水表中添加完成订单记录（收入为正数）
+            JSONObject transactionParam = new JSONObject();
+            transactionParam.put("oid", oid);
+            transactionParam.put("uid", order.getXdr());
+            transactionParam.put("type", "COMPLETE_ORDER");
+            transactionParam.put("amount", order.getAmount()); // 收入为正数
+            transactionService.create(transactionParam);
+        }
+
+        if ('C' == status.charAt(0)) {
+            // 3. 如果状态更新为已取消（C），则处理金额返还和流水记录
+            // 1. 将金额返还给用户（增加余额）
+            boolean refundSuccess = userMapper.update(null, new LambdaUpdateWrapper<User>()
+                    .setSql("balance = balance + " + order.getAmount())
+                    .eq(User::getUid, order.getXdr())) > 0;
+
+            if (!refundSuccess) {
+                throw new RuntimeException("返还金额失败");
+            }
+
+            // 2. 在流水表中添加取消订单记录（收入为正数）
+            JSONObject transactionParam = new JSONObject();
+            transactionParam.put("oid", oid);
+            transactionParam.put("uid", order.getXdr());
+            transactionParam.put("type", "CANCEL_ORDER");
+            transactionParam.put("amount", order.getAmount()); // 收入为正数
+            transactionService.create(transactionParam);
+        }
+
         return R.success();
     }
 

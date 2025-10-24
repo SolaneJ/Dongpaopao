@@ -43,6 +43,18 @@ public class UserController {
     }
 
     /**
+     * 获取用户余额
+     *
+     * @param uid 用户 ID
+     * @return 用户余额
+     */
+    @GetMapping("/balance")
+    @ApiOperation("获取用户余额")
+    public R getBalance(@RequestParam("uid") String uid) {
+        return userService.getBalance(uid);
+    }
+
+    /**
      * 上传头像
      *
      * @param file 头像文件

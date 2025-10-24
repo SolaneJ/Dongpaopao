@@ -10,5 +10,7 @@ public interface UserService{
 
     R getUserInfo(String uId);
 
+    R getBalance(String uid);
+
     R uploadAvatar(MultipartFile file, String uid);
 }

@@ -49,6 +49,8 @@
         WHERE
         -- 用户必须是订单的下单人 或 接单人
         (o.xdr = #{uid} OR o.jdr = #{uid})
+        -- 会话状态是开启的
+        AND c.status = 'OPENING'
         -- 并且用户在会话参与者中
         ORDER BY c.last_message_send_time DESC;
     </select>

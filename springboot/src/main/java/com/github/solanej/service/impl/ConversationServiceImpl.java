@@ -11,8 +11,6 @@ import com.github.solanej.service.ConversationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class ConversationServiceImpl implements ConversationService {
@@ -39,11 +37,6 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public R listConversation(String uid) {
-//        List<Conversation> result = conversationMapper.selectList(new LambdaQueryWrapper<Conversation>()
-//                .eq(Conversation::getStatus, "OPENING")
-//                .like(Conversation::getParticipants, uid)
-//                .orderByDesc(Conversation::getLastMessageSendTime));
-        List<JSONObject> result = conversationMapper.listConversation(uid);
-        return R.success(result);
+        return R.success(conversationMapper.listConversation(uid));
     }
 }

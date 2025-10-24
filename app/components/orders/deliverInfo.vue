@@ -21,12 +21,10 @@
 		<!-- 期望送达时间 -->
 		<view class="input-group">
 			<text class="input-label">期望送达时间</text>
-			<picker mode="time" @change="handleTimeChange">
-				<view class="picker">
-					<text>{{ selectedTime || '请选择期望送达时间' }}</text>
-					<uni-icons type="arrowdown" size="16" color="#999" />
-				</view>
-			</picker>
+			<view class="datetime-picker" @click="showDateTimePicker = true">
+				<text>{{ selectedDateTime || '请选择期望送达时间' }}</text>
+				<uni-icons type="arrowdown" size="16" color="#999" />
+			</view>
 		</view>
 
 		<!-- 配送地址选择 -->
@@ -48,6 +46,17 @@
 				</view>
 			</view>
 		</u-popup>
+		
+		<!-- 日期时间选择器 -->
+		<u-datetime-picker
+			:show="showDateTimePicker"
+			v-model="dateTimeValue"
+			mode="datetime"
+			:minDate="minDate"
+			:maxDate="maxDate"
+			@confirm="handleDateTimeConfirm"
+			@cancel="showDateTimePicker = false"
+		></u-datetime-picker>
 	</view>
 </template>
 
@@ -77,11 +86,33 @@
 		detail: '',
 		isDefault: false
 	});
-	const selectedTime = ref('');
+	const selectedDateTime = ref('');
+	
+	// 日期时间选择相关
+	const showDateTimePicker = ref(false);
+	const dateTimeValue = ref(0);
+	const minDate = ref(0);
+	const maxDate = ref(0);
 
 	const showPopup = ref(false)
 
 	const addrs = ref([])
+
+	// 初始化日期时间选择器范围
+	const initDateTimeRange = () => {
+		const now = new Date();
+		minDate.value = now.getTime(); // 当前时间
+		
+		// 最大可选时间为当前时间加30天
+		const maxDateObj = new Date();
+		maxDateObj.setDate(now.getDate() + 30);
+		maxDate.value = maxDateObj.getTime();
+		
+		// 设置默认值为当前时间加1小时
+		const defaultTime = new Date();
+		defaultTime.setHours(now.getHours() + 1);
+		dateTimeValue.value = defaultTime.getTime();
+	}
 
 	// 加载地址列表
 	const loadAddr = () => {
@@ -112,11 +143,22 @@
 
 	onLoad(() => {
 		loadAddr();
+		initDateTimeRange();
 	})
 
-	// 处理时间选择
-	const handleTimeChange = (e) => {
-		selectedTime.value = e.detail.value;
+	// 处理日期时间选择
+	const handleDateTimeConfirm = (e) => {
+		const date = new Date(e.value);
+		
+		// 格式化显示：YYYY-MM-DD HH:mm
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		
+		selectedDateTime.value = `${year}-${month}-${day} ${hours}:${minutes}`;
+		showDateTimePicker.value = false;
 	};
 
 	// 表单验证
@@ -129,7 +171,7 @@
 			return false;
 		}
 
-		if (!selectedTime.value) {
+		if (!selectedDateTime.value) {
 			uni.showToast({
 				title: '请选择期望送达时间',
 				icon: 'none'
@@ -137,25 +179,37 @@
 			return false;
 		}
 
-		// 验证手机号格式
-		const phoneRegex = /^1[3-9]\d{9}$/;
-		// if (!phoneRegex.test(selectedAddrInfo.phone)) {
-		// 	uni.showToast({
-		// 		title: '收货人手机号格式不正确',
-		// 		icon: 'none'
-		// 	});
-		// 	return false;
-		// }
+		// 验证选择的日期时间是否在当前时间之后
+		const selectedTime = new Date(dateTimeValue.value);
+		const now = new Date();
+		if (selectedTime <= now) {
+			uni.showToast({
+				title: '送达时间必须晚于当前时间',
+				icon: 'none'
+			});
+			return false;
+		}
 
 		return true;
 	}
 
 	// 获取表单数据
 	const getFormData = () => {
+		// 将日期时间转换为后端需要的格式 (LocalDateTime)
+		// 格式: YYYY-MM-DDTHH:mm:ss
+		const date = new Date(dateTimeValue.value);
+		const year = date.getFullYear();
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		const hours = String(date.getHours()).padStart(2, '0');
+		const minutes = String(date.getMinutes()).padStart(2, '0');
+		const seconds = String(date.getSeconds()).padStart(2, '0');
+		
+		const localDateTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+		
 		return {
-			// address: selectedAddrInfo,
 			aid: selectedAddrId.value,
-			expectTime: selectedTime.value
+			expectTime: localDateTime // 格式: 2023-12-01T14:30:00
 		};
 	}
 
@@ -186,7 +240,7 @@
 		margin-bottom: 15rpx;
 	}
 
-	.picker {
+	.datetime-picker {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;

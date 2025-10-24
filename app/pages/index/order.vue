@@ -103,14 +103,19 @@
 					icon: "error"
 				})
 			}
-		}).then(() => {
+		}).then((res) => {
 			uni.hideLoading();
 
-			// 提交成功
-			uni.showToast({
-				title: '下单成功',
-				icon: 'success'
-			});
+			res.errCode === 0 ?
+				uni.showToast({
+					title: "下单成功",
+					icon: 'success'
+				})
+				:
+				uni.showToast({
+					title: res.msg,
+					icon: 'error'
+				});
 
 			// 跳转到订单详情或订单列表页面
 			setTimeout(() => {
