@@ -83,7 +83,7 @@
 		const tempAvatarUrl = res.detail.avatarUrl
 
 		uni.uploadFile({
-			url: "http://localhost:8181/api/user/avatar?uid=" + userInfo.uid,
+			url: "https://localhost:8181/api/user/avatar?uid=" + userInfo.uid,
 			filePath: tempAvatarUrl,
 			name: "file",
 			success(res) {

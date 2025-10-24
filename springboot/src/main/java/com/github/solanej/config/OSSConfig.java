@@ -1,6 +1,6 @@
 package com.github.solanej.config;
 
-import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,7 +19,8 @@ public class OSSConfig {
     private final String ACCESS_KEY = "TvzknGD9FEguVOCemRct";
     private final String SECRET_KEY = "5DPl2ZWXmRLGbfMivOINCu7H8nEcgtSe49AwqoT6";
     /* 访问地址 */
-    public static final String ENDPOINT = "http://127.0.0.1:9000/";
+    @Value("${OSS_ENDPOINT}")
+    public String ENDPOINT;
 
     @Bean
     public S3Client s3Client() {

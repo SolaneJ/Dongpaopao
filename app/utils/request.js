@@ -1,6 +1,6 @@
 // utils/request.js
 
-const BASE_URL = 'http://localhost:8181/api' // 你的基础URL
+const BASE_URL = 'https://localhost:8181/api' // 你的基础URL
 
 function request(options) {
 	const config = {

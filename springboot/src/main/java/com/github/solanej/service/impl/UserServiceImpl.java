@@ -1,7 +1,6 @@
 package com.github.solanej.service.impl;
 
 import com.github.solanej.common.R;
-import com.github.solanej.config.OSSConfig;
 import com.github.solanej.entity.User;
 import com.github.solanej.mapper.UserMapper;
 import com.github.solanej.service.UserService;
@@ -48,8 +47,8 @@ public class UserServiceImpl implements UserService {
         PutObjectResponse avatar = s3Client.putObject(builder ->
                 builder.contentType("image/jpeg").bucket("avatar").key(uid), body);
 
-        /* 当前版保存头像的策略是直接取文件名(uid)放入桶中，所以在数据库更新头像时直接放入[http://host:port/avatar/uid]即可 */
-        String avatarUrl = OSSConfig.ENDPOINT + "avatar/" + uid;
+        /* 当前版保存头像的策略是直接取文件名(uid)放入桶中，所以在数据库更新头像时直接放入[https://host:port/avatar/uid]即可 */
+        String avatarUrl = "http://localhost:9000/" + "avatar/" + uid;
 
         final User user = new User();
         user.setUid(uid);

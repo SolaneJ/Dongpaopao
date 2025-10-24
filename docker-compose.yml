@@ -1,0 +1,64 @@
+services:
+  # 后端服务
+  backend:
+    build: ./springboot
+    ports:
+      - "8181:8181"
+    depends_on:
+      - pao-db
+      - pao-redis
+      - pao-oss
+    environment:
+      # 微信小程序appId、appSecret
+      - WECHAT_MINI_PROGRAM_APP_ID=${WECHAT_MINI_PROGRAM_APP_ID}
+      - WECHAT_MINI_PROGRAM_APP_SECRET=${WECHAT_MINI_PROGRAM_APP_SECRET}
+      # OSS 访问地址
+      - OSS_ENDPOINT=http://pao-oss:9000/
+      # RustFS 服务器域名
+      - RUSTFS_SERVER_DOMAINS=http://pao-oss:9000/
+    container_name: backend
+    networks:
+      - pao-network
+
+  # 数据库
+  pao-db:
+    image: mysql:8.0.43
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_DATABASE: pao
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    container_name: pao-db
+    networks:
+      - pao-network
+
+  # redis
+  pao-redis:
+    image: redis:8.2.1
+    ports:
+      - "6379:6379"
+    container_name: pao-redis
+    networks:
+      - pao-network
+
+  # oss
+  pao-oss:
+    image: rustfs/rustfs
+#    volumes:
+#      - ./certs:/certs
+    ports:
+      - "9000:9000"
+    environment:
+      - RUSTFS_ACCESS_KEY=TvzknGD9FEguVOCemRct
+      - RUSTFS_SECRET_KEY=5DPl2ZWXmRLGbfMivOINCu7H8nEcgtSe49AwqoT6
+      - RUSTFS_TLS_PATH=/certs
+      - RUSTFS_CONSOLE_ENABLE=true
+    container_name: pao-oss
+    networks:
+      - pao-network
+
+networks:
+  pao-network:
+    driver: bridge
