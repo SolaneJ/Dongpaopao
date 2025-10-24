@@ -6,7 +6,8 @@ import com.github.solanej.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@RestController("/transaction")
+@RestController
+@RequestMapping("/transaction")
 @RequiredArgsConstructor
 public class TransactionController {
 

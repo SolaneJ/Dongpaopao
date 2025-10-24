@@ -1,6 +1,7 @@
 package com.github.solanej.service.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.solanej.common.R;
 import com.github.solanej.entity.Transaction;
 import com.github.solanej.mapper.TransactionMapper;
@@ -26,7 +27,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public R list(String uid) {
-        return null;
+        return R.success(transactionMapper.selectList(new LambdaQueryWrapper<Transaction>().eq(Transaction::getUid, uid)));
     }
 
     private void validateTransaction(Transaction transaction) {

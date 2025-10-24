@@ -41,19 +41,19 @@
 			</view>
 
 			<view class="records-list">
-				<view v-for="record in filteredRecords" :key="record.id" class="record-item">
+				<view v-for="record in filteredRecords" :key="record.tid" class="record-item">
 					<view class="record-left">
 						<view class="record-icon" :class="getRecordTypeClass(record.type)">
 							{{ getRecordIcon(record.type) }}
 						</view>
 						<view class="record-info">
-							<text class="record-title">{{ record.type }}</text>
-							<text class="record-desc">{{ record.desc }}</text>
-							<text class="record-time">{{ record.time }}</text>
+							<text class="record-title">{{ getRecordTypeText(record.type) }}</text>
+							<text class="record-desc">{{ getRecordDesc(record.type) }}</text>
+							<text class="record-time">{{ formatTime(record.create_time) }}</text>
 						</view>
 					</view>
-					<view class="record-amount" :class="getAmountClass(record.amount)">
-						{{ record.amount > 0 ? '+' : '' }}{{ formatAmount(record.amount) }}
+					<view class="record-amount" :class="getAmountClass(record.amount, record.type)">
+						{{ getAmountPrefix(record.type) }}{{ formatAmount(record.amount) }}
 					</view>
 				</view>
 
@@ -161,320 +161,323 @@
 </template>
 
 <script setup lang="ts">
-	import {
-		ref,
-		computed,
-		Ref
-	} from 'vue'
-	import { useUserStore } from '@/stores/user'
-	import request from '@/utils/request'
-	import { onShow } from '@dcloudio/uni-app'
+import { ref, computed, Ref } from 'vue'
+import { useUserStore } from '@/stores/user'
+import request from '@/utils/request'
+import { onShow } from '@dcloudio/uni-app'
 
-	const userInfo = useUserStore().info
+const userInfo = useUserStore().info
 
-	onShow(async () => {
+// 响应式数据
+const totalBalance: Ref<number> = ref(0)
+const currentTab = ref(0)
+const showRecharge = ref(false)
+const showWithdraw = ref(false)
+const loading: Ref<boolean> = ref(false)
+const transactionRecords: Ref<any[]> = ref([])
+
+// 微信用户信息
+const wechatInfo = ref({
+	nickname: '微信用户',
+	avatar: ''
+})
+
+// 充值相关
+const rechargeAmount = ref('')
+const rechargeError = ref('')
+const quickAmounts = [100, 200, 500, 1000, 2000, 5000]
+
+// 提现相关
+const withdrawAmount = ref('')
+const withdrawError = ref('')
+
+// 操作按钮配置
+const actions = ref([{
+	type: 'recharge',
+	text: '充值',
+	icon: '💳'
+},
+{
+	type: 'withdraw',
+	text: '提现',
+	icon: '💰'
+}
+])
+
+// 标签页配置
+const tabList = ref([{
+	name: '全部'
+},
+{
+	name: '收入'
+},
+{
+	name: '支出'
+}
+])
+
+// 交易记录类型映射
+const recordTypeMap = {
+	'RECHARGE': { text: '微信充值', desc: '账户充值', icon: '💳', isIncome: true },
+	'WITHDRAWAL': { text: '微信提现', desc: '提现到微信零钱', icon: '💰', isIncome: false },
+	'ORDER': { text: '订单支付', desc: '订单消费', icon: '🛒', isIncome: false },
+	'COMPLETE_ORDER': { text: '订单完成', desc: '订单收入', icon: '✅', isIncome: true },
+	'CANCEL_ORDER': { text: '订单取消', desc: '订单退款', icon: '↩️', isIncome: true }
+}
+
+onShow(async () => {
+	await loadWalletData()
+})
+
+// 加载钱包数据
+const loadWalletData = async () => {
+	loading.value = true
+	try {
 		// 获取用户余额
-		loading.value = true;
 		await request({
 			url: "/user/balance?uid=" + userInfo.uid
 		}).then((res) => {
-			console.log(res);
-			totalBalance.value = res.data
-		});
-		loading.value = false;
-	})
+			console.log('余额数据:', res)
+			totalBalance.value = res.data || 0
+		})
 
-	// 响应式数据
-	const totalBalance : Ref<number> = ref(5680.50)
-	const currentTab = ref(0)
-	const showRecharge = ref(false)
-	const showWithdraw = ref(false)
-	const loading : Ref<boolean> = ref(false)
-
-	// 微信用户信息
-	const wechatInfo = ref({
-		nickname: '微信用户',
-		avatar: ''
-	})
-
-	// 充值相关
-	const rechargeAmount = ref('')
-	const rechargeError = ref('')
-	const quickAmounts = [100, 200, 500, 1000, 2000, 5000]
-
-	// 提现相关
-	const withdrawAmount = ref('')
-	const withdrawError = ref('')
-
-	// 操作按钮配置
-	const actions = ref([{
-		type: 'recharge',
-		text: '充值',
-		icon: '💳'
-	},
-	{
-		type: 'withdraw',
-		text: '提现',
-		icon: '💰'
+		// 获取交易记录
+		await request({
+			url: "/transaction/list?uid=" + userInfo.uid
+		}).then((res) => {
+			console.log('交易记录数据:', res)
+			if (res.data && Array.isArray(res.data)) {
+				transactionRecords.value = res.data.sort((a, b) => 
+					new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
+				)
+			} else {
+				transactionRecords.value = []
+			}
+		})
+	} catch (error) {
+		console.error('加载钱包数据失败:', error)
+		uni.showToast({
+			title: '数据加载失败',
+			icon: 'error'
+		})
+	} finally {
+		loading.value = false
 	}
-	])
+}
 
-	// 标签页配置
-	const tabList = ref([{
-		name: '全部'
-	},
-	{
-		name: '收入'
-	},
-	{
-		name: '支出'
+// 格式化金额
+const formatAmount = (amount: number) => {
+	return Math.abs(amount).toFixed(2)
+}
+
+// 格式化时间
+const formatTime = (timeStr: string) => {
+	if (!timeStr) return ''
+	const date = new Date(timeStr)
+	const month = (date.getMonth() + 1).toString().padStart(2, '0')
+	const day = date.getDate().toString().padStart(2, '0')
+	const hours = date.getHours().toString().padStart(2, '0')
+	const minutes = date.getMinutes().toString().padStart(2, '0')
+	return `${month}-${day} ${hours}:${minutes}`
+}
+
+// 获取记录类型文本
+const getRecordTypeText = (type: string) => {
+	return recordTypeMap[type as keyof typeof recordTypeMap]?.text || type
+}
+
+// 获取记录描述
+const getRecordDesc = (type: string) => {
+	return recordTypeMap[type as keyof typeof recordTypeMap]?.desc || '交易记录'
+}
+
+// 获取记录类型样式
+const getRecordTypeClass = (type: string) => {
+	const typeClassMap: Record<string, string> = {
+		'RECHARGE': 'recharge',
+		'WITHDRAWAL': 'withdraw',
+		'ORDER': 'shopping',
+		'COMPLETE_ORDER': 'transfer',
+		'CANCEL_ORDER': 'refund'
 	}
-	])
+	return typeClassMap[type] || 'default'
+}
 
-	// 交易记录数据
-	const records = ref([{
-		id: 1,
-		type: '微信充值',
-		desc: '账户充值',
-		amount: 500.00,
-		time: '10-15 09:30'
-	},
-	{
-		id: 2,
-		type: '餐饮消费',
-		desc: '海底捞火锅',
-		amount: -268.50,
-		time: '10-14 18:45'
-	},
-	{
-		id: 3,
-		type: '购物消费',
-		desc: '微信小程序购物',
-		amount: -456.80,
-		time: '10-13 15:20'
-	},
-	{
-		id: 4,
-		type: '微信提现',
-		desc: '提现到微信零钱',
-		amount: -1000.00,
-		time: '10-12 10:15'
-	},
-	{
-		id: 5,
-		type: '转账收入',
-		desc: '微信好友转账',
-		amount: 200.00,
-		time: '10-11 14:30'
-	},
-	{
-		id: 6,
-		type: '交通出行',
-		desc: '微信乘车码',
-		amount: -8.00,
-		time: '10-10 08:20'
-	},
-	{
-		id: 7,
-		type: '退款收入',
-		desc: '微信支付退款',
-		amount: 198.00,
-		time: '10-09 16:40'
-	},
-	{
-		id: 8,
-		type: '娱乐消费',
-		desc: '微信小程序游戏',
-		amount: -68.00,
-		time: '10-08 20:15'
+// 获取记录图标
+const getRecordIcon = (type: string) => {
+	return recordTypeMap[type as keyof typeof recordTypeMap]?.icon || '💳'
+}
+
+// 获取金额前缀
+const getAmountPrefix = (type: string) => {
+	const recordType = recordTypeMap[type as keyof typeof recordTypeMap]
+	return recordType?.isIncome ? '+' : '-'
+}
+
+// 获取金额样式
+const getAmountClass = (amount: number, type: string) => {
+	const recordType = recordTypeMap[type as keyof typeof recordTypeMap]
+	if (recordType?.isIncome) {
+		return 'income'
 	}
-	])
+	return 'expense'
+}
 
-	// 格式化金额
-	const formatAmount = (amount : number) => {
-		return Math.abs(amount).toFixed(2)
+// 过滤记录
+const filteredRecords = computed(() => {
+	if (currentTab.value === 0) {
+		return transactionRecords.value
+	} else if (currentTab.value === 1) {
+		return transactionRecords.value.filter(record => {
+			const recordType = recordTypeMap[record.type as keyof typeof recordTypeMap]
+			return recordType?.isIncome
+		})
+	} else if (currentTab.value === 2) {
+		return transactionRecords.value.filter(record => {
+			const recordType = recordTypeMap[record.type as keyof typeof recordTypeMap]
+			return !recordType?.isIncome
+		})
 	}
+	return transactionRecords.value
+})
 
-	// 获取记录类型样式
-	const getRecordTypeClass = (type : string) => {
-		const typeMap : Record<string, string> = {
-			'微信充值': 'recharge',
-			'微信提现': 'withdraw',
-			'转账收入': 'transfer',
-			'退款收入': 'refund',
-			'餐饮消费': 'food',
-			'购物消费': 'shopping',
-			'交通出行': 'transport',
-			'娱乐消费': 'entertainment'
-		}
-		return typeMap[type] || 'default'
+// 标签页切换
+const onTabChange = (index: number) => {
+	currentTab.value = index
+}
+
+// 操作处理
+const handleAction = (type: string) => {
+	switch (type) {
+		case 'recharge':
+			showRechargeDialog()
+			break
+		case 'withdraw':
+			showWithdrawDialog()
+			break
 	}
+}
 
-	// 获取记录图标
-	const getRecordIcon = (type : string) => {
-		const iconMap : Record<string, string> = {
-			'微信充值': '💳',
-			'微信提现': '💰',
-			'转账收入': '🔄',
-			'退款收入': '↩️',
-			'餐饮消费': '🍽️',
-			'购物消费': '🛍️',
-			'交通出行': '🚗',
-			'娱乐消费': '🎮'
-		}
-		return iconMap[type] || '💳'
-	}
+// 充值功能
+const showRechargeDialog = () => {
+	showRecharge.value = true
+	rechargeAmount.value = ''
+	rechargeError.value = ''
+}
 
-	// 获取金额样式
-	const getAmountClass = (amount : number) => {
-		return amount > 0 ? 'income' : 'expense'
-	}
+const hideRechargeDialog = () => {
+	showRecharge.value = false
+}
 
-	// 过滤记录
-	const filteredRecords = computed(() => {
-		if (currentTab.value === 0) {
-			return records.value
-		} else if (currentTab.value === 1) {
-			return records.value.filter(record => record.amount > 0)
-		} else if (currentTab.value === 2) {
-			return records.value.filter(record => record.amount < 0)
-		}
-		return records.value
-	})
+const setRechargeAmount = (amount: number) => {
+	rechargeAmount.value = amount.toString()
+	validateRechargeAmount()
+}
 
-	// 标签页切换
-	const onTabChange = (index : number) => {
-		currentTab.value = index
-	}
-
-	// 操作处理
-	const handleAction = (type : string) => {
-		switch (type) {
-			case 'recharge':
-				showRechargeDialog()
-				break
-			case 'withdraw':
-				showWithdrawDialog()
-				break
-		}
-	}
-
-	// 充值功能
-	const showRechargeDialog = () => {
-		showRecharge.value = true
-		rechargeAmount.value = ''
+const validateRechargeAmount = () => {
+	const amount = parseFloat(rechargeAmount.value)
+	if (!amount || amount <= 0) {
+		rechargeError.value = '请输入有效金额'
+	} else if (amount < 1) {
+		rechargeError.value = '充值金额不能少于1元'
+	} else if (amount > 50000) {
+		rechargeError.value = '单笔充值不能超过50,000元'
+	} else {
 		rechargeError.value = ''
 	}
+}
 
-	const hideRechargeDialog = () => {
-		showRecharge.value = false
-	}
+const confirmRecharge = () => {
+	if (!rechargeAmount.value || rechargeError.value) return
 
-	const setRechargeAmount = (amount : number) => {
-		rechargeAmount.value = amount.toString()
-		validateRechargeAmount()
-	}
+	uni.showLoading({
+		title: '调起微信支付...'
+	})
 
-	const validateRechargeAmount = () => {
-		const amount = parseFloat(rechargeAmount.value)
-		if (!amount || amount <= 0) {
-			rechargeError.value = '请输入有效金额'
-		} else if (amount < 1) {
-			rechargeError.value = '充值金额不能少于1元'
-		} else if (amount > 50000) {
-			rechargeError.value = '单笔充值不能超过50,000元'
-		} else {
-			rechargeError.value = ''
-		}
-	}
-
-	const confirmRecharge = () => {
-		if (!rechargeAmount.value || rechargeError.value) return
-
-		uni.showLoading({
-			title: '调起微信支付...'
+	setTimeout(() => {
+		uni.hideLoading()
+		uni.showToast({
+			title: `充值成功 ¥${rechargeAmount.value}`,
+			icon: 'success'
 		})
 
-		setTimeout(() => {
-			uni.hideLoading()
-			uni.showToast({
-				title: `充值成功 ¥${rechargeAmount.value}`,
-				icon: 'success'
-			})
+		// 更新余额
+		const amount = parseFloat(rechargeAmount.value)
+		totalBalance.value += amount
 
-			// 更新余额
-			const amount = parseFloat(rechargeAmount.value)
-			totalBalance.value += amount
+		// 添加交易记录
+		const newRecord = {
+			tid: 'recharge_' + Date.now(),
+			oid: null,
+			uid: userInfo.uid,
+			amount: amount,
+			type: 'RECHARGE',
+			create_time: new Date().toISOString()
+		}
+		transactionRecords.value.unshift(newRecord)
 
-			// 添加交易记录
-			records.value.unshift({
-				id: Date.now(),
-				type: '微信充值',
-				desc: '账户充值',
-				amount: amount,
-				time: '刚刚'
-			})
+		hideRechargeDialog()
+	}, 2000)
+}
 
-			hideRechargeDialog()
-		}, 2000)
-	}
+// 提现功能
+const showWithdrawDialog = () => {
+	showWithdraw.value = true
+	withdrawAmount.value = ''
+	withdrawError.value = ''
+}
 
-	// 提现功能
-	const showWithdrawDialog = () => {
-		showWithdraw.value = true
-		withdrawAmount.value = ''
+const hideWithdrawDialog = () => {
+	showWithdraw.value = false
+}
+
+const validateWithdrawAmount = () => {
+	const amount = parseFloat(withdrawAmount.value)
+	if (!amount || amount <= 0) {
+		withdrawError.value = '请输入有效金额'
+	} else if (amount < 1) {
+		withdrawError.value = '提现金额不能少于1元'
+	} else if (amount > totalBalance.value) {
+		withdrawError.value = '提现金额不能超过总余额'
+	} else if (amount > 50000) {
+		withdrawError.value = '单笔提现不能超过50,000元'
+	} else {
 		withdrawError.value = ''
 	}
+}
 
-	const hideWithdrawDialog = () => {
-		showWithdraw.value = false
-	}
+const confirmWithdraw = () => {
+	if (!withdrawAmount.value || withdrawError.value) return
 
-	const validateWithdrawAmount = () => {
-		const amount = parseFloat(withdrawAmount.value)
-		if (!amount || amount <= 0) {
-			withdrawError.value = '请输入有效金额'
-		} else if (amount < 1) {
-			withdrawError.value = '提现金额不能少于1元'
-		} else if (amount > totalBalance.value) {
-			withdrawError.value = '提现金额不能超过总余额'
-		} else if (amount > 50000) {
-			withdrawError.value = '单笔提现不能超过50,000元'
-		} else {
-			withdrawError.value = ''
-		}
-	}
+	uni.showLoading({
+		title: '处理中...'
+	})
 
-	const confirmWithdraw = () => {
-		if (!withdrawAmount.value || withdrawError.value) return
-
-		uni.showLoading({
-			title: '处理中...'
+	setTimeout(() => {
+		uni.hideLoading()
+		uni.showToast({
+			title: '提现申请已提交',
+			icon: 'success'
 		})
 
-		setTimeout(() => {
-			uni.hideLoading()
-			uni.showToast({
-				title: '提现申请已提交',
-				icon: 'success'
-			})
+		// 更新余额
+		const amount = parseFloat(withdrawAmount.value)
+		totalBalance.value -= amount
 
-			// 更新余额
-			const amount = parseFloat(withdrawAmount.value)
-			totalBalance.value -= amount
+		// 添加交易记录
+		const newRecord = {
+			tid: 'withdraw_' + Date.now(),
+			oid: null,
+			uid: userInfo.uid,
+			amount: amount,
+			type: 'WITHDRAWAL',
+			create_time: new Date().toISOString()
+		}
+		transactionRecords.value.unshift(newRecord)
 
-			// 添加交易记录
-			records.value.unshift({
-				id: Date.now(),
-				type: '微信提现',
-				desc: '提现到微信零钱',
-				amount: -amount,
-				time: '刚刚'
-			})
-
-			hideWithdrawDialog()
-		}, 1500)
-	}
+		hideWithdrawDialog()
+	}, 1500)
+}
 </script>
 
 <style scoped>
