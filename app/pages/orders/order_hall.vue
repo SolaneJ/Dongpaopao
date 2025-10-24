@@ -73,22 +73,17 @@
 	const inferOrderType = (order) => {
 		if (!order.detail) return 'E';
 
-		try {
-			const detail = typeof order.detail === 'string' ? JSON.parse(order.detail) : order.detail;
-
-			if (detail.company && detail.code) {
-				return 'E';
-			} else if (detail.location && detail.code && !detail.company) {
-				return 'T';
-			} else if (detail.description && detail.weight) {
-				return 'C';
-			} else if (detail.productLink && detail.description) {
-				return 'P';
-			} else if (detail.description && detail.count && detail.price) {
-				return 'P';
-			}
-		} catch (e) {
-			console.error('解析订单详情失败:', e);
+		const detail = typeof order.detail === 'string' ? JSON.parse(order.detail) : order.detail;
+		if (detail.company && detail.code) {
+			return 'E';
+		} else if (detail.location && detail.code && !detail.company) {
+			return 'T';
+		} else if (detail.description && detail.weight) {
+			return 'C';
+		} else if (detail.productLink && detail.description) {
+			return 'P';
+		} else if (detail.description && detail.count && detail.price) {
+			return 'P';
 		}
 
 		return 'E';
@@ -108,7 +103,6 @@
 				inferredType: inferOrderType(order)
 			}));
 		} catch (error) {
-			console.error('加载订单失败:', error);
 			uni.showToast({
 				title: '加载订单失败',
 				icon: 'none'

@@ -237,7 +237,6 @@
 							? JSON.parse(orderDetail.value.detail)
 							: orderDetail.value.detail;
 					} catch (e) {
-						console.error('解析订单详情失败:', e);
 						businessDetail.value = {};
 					}
 				}
@@ -245,7 +244,6 @@
 				throw new Error(res.msg || '获取订单详情失败');
 			}
 		} catch (error) {
-			console.error('加载订单详情失败:', error);
 			uni.showToast({
 				title: '加载订单详情失败',
 				icon: 'none'
@@ -326,7 +324,6 @@
 				throw new Error(res.msg || '接单失败');
 			}
 		} catch (error) {
-			console.error('接单失败:', error);
 			uni.showToast({
 				title: error.message || '接单失败',
 				icon: 'none'
@@ -369,7 +366,6 @@
 								throw new Error(result.msg || '操作失败');
 							}
 						} catch (error) {
-							console.error('完成订单失败:', error);
 							uni.showToast({
 								title: error.message || '操作失败',
 								icon: 'none'
@@ -381,7 +377,6 @@
 				}
 			});
 		} catch (error) {
-			console.error('完成订单失败:', error);
 			uni.showToast({
 				title: error.message || '操作失败',
 				icon: 'none'

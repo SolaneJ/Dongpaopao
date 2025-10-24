@@ -244,18 +244,13 @@
 
 	const loadOrderInfo = async () => {
 		if (!orderId.value) return;
+		const res = await request({
+			url: `/order/detail?oid=${orderId.value}`,
+			method: 'GET'
+		});
 
-		try {
-			const res = await request({
-				url: `/order/detail?oid=${orderId.value}`,
-				method: 'GET'
-			});
-
-			if (res.errCode === 0) {
-				orderInfo.value = res.data;
-			}
-		} catch (error) {
-			console.error('加载订单信息失败:', error);
+		if (res.errCode === 0) {
+			orderInfo.value = res.data;
 		}
 	};
 
@@ -407,31 +402,26 @@
 	};
 
 	const handleWebSocketMessage = (data) => {
-		try {
-			const message = typeof data === 'string' ? JSON.parse(data) : data;
-
-			switch (message.type) {
-				case 'CHAT':
-					handleChatMessage(message);
-					break;
-				case 'JOIN':
-					handleUserJoin(message);
-					break;
-				case 'READ':
-					handleMessageRead(message);
-					break;
-				case 'TYPING':
-					handleTyping(message);
-					break;
-				case 'ONLINE':
-					handleOnlineStatus(message);
-					break;
-				default:
-					handleChatMessage(message);
-					break;
-			}
-		} catch (error) {
-			console.error('处理WebSocket消息失败:', error);
+		const message = typeof data === 'string' ? JSON.parse(data) : data;
+		switch (message.type) {
+			case 'CHAT':
+				handleChatMessage(message);
+				break;
+			case 'JOIN':
+				handleUserJoin(message);
+				break;
+			case 'READ':
+				handleMessageRead(message);
+				break;
+			case 'TYPING':
+				handleTyping(message);
+				break;
+			case 'ONLINE':
+				handleOnlineStatus(message);
+				break;
+			default:
+				handleChatMessage(message);
+				break;
 		}
 	};
 
@@ -488,15 +478,11 @@
 			return false;
 		}
 
-		try {
-			socketTask.value.send({
-				data: JSON.stringify(message)
-			});
-			return true;
-		} catch (error) {
-			console.error('WebSocket发送消息失败:', error);
-			return false;
-		}
+		socketTask.value.send({
+			data: JSON.stringify(message)
+		});
+		return true;
+
 	};
 
 	// 修复滚动到底部功能 - 简单有效的方法
@@ -604,7 +590,6 @@
 				throw new Error(res.msg || '发送失败');
 			}
 		} catch (error) {
-			console.error('发送消息失败:', error);
 			if (tempId) {
 				updateMessageStatus(tempId, 'error');
 			}

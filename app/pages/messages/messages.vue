@@ -73,7 +73,6 @@
 				});
 			}
 		} catch (error) {
-			console.error('获取会话列表失败:', error);
 			uni.showToast({
 				title: '网络错误',
 				icon: 'none'

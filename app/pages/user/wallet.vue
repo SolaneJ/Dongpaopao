@@ -235,50 +235,33 @@ onShow(async () => {
 const loadWalletData = async () => {
 	loading.value = true
 	try {
-		console.log('开始加载钱包数据，用户ID:', userInfo.uid)
-		
-		// 获取用户余额
-		console.log('请求余额接口...')
 		await request({
 			url: "/user/balance?uid=" + userInfo.uid
 		}).then((res) => {
-			console.log('余额接口响应:', res)
 			totalBalance.value = res.data || 0
 		})
 
-		// 获取交易记录
-		console.log('请求交易记录接口...')
 		const transactionUrl = "/transaction/list?uid=" + userInfo.uid
-		console.log('交易记录接口URL:', transactionUrl)
 		
 		await request({
 			url: transactionUrl
 		}).then((res) => {
-			console.log('交易记录接口完整响应:', res)
-			console.log('交易记录数据:', res.data)
-			
 			if (res.data && Array.isArray(res.data)) {
-				console.log(`获取到 ${res.data.length} 条交易记录`)
 				transactionRecords.value = res.data.sort((a, b) => 
 					new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
 				)
 			} else {
-				console.log('交易记录数据格式异常:', res.data)
 				transactionRecords.value = []
 			}
-		}).catch((error) => {
-			console.error('交易记录接口请求失败:', error)
 		})
 		
 	} catch (error) {
-		console.error('加载钱包数据失败:', error)
 		uni.showToast({
 			title: '数据加载失败',
 			icon: 'error'
 		})
 	} finally {
 		loading.value = false
-		console.log('钱包数据加载完成')
 	}
 }
 
@@ -411,11 +394,6 @@ const confirmRecharge = async () => {
 
 	try {
 		const amount = parseFloat(rechargeAmount.value)
-		
-		console.log('发起充值请求:', {
-			uid: userInfo.uid,
-			amount: amount
-		})
 
 		const res = await request({
 			url: '/user/recharge',
@@ -425,8 +403,6 @@ const confirmRecharge = async () => {
 				amount: amount
 			}
 		})
-
-		console.log('充值接口响应:', res)
 
 		if (res.code === 200) {
 			uni.showToast({
@@ -448,7 +424,6 @@ const confirmRecharge = async () => {
 			})
 		}
 	} catch (error) {
-		console.error('充值请求失败:', error)
 		uni.showToast({
 			title: '充值失败，请重试',
 			icon: 'error'
@@ -491,11 +466,6 @@ const confirmWithdraw = async () => {
 
 	try {
 		const amount = parseFloat(withdrawAmount.value)
-		
-		console.log('发起提现请求:', {
-			uid: userInfo.uid,
-			amount: amount
-		})
 
 		const res = await request({
 			url: '/user/withdraw',
@@ -505,8 +475,6 @@ const confirmWithdraw = async () => {
 				amount: amount
 			}
 		})
-
-		console.log('提现接口响应:', res)
 
 		if (res.code === 200) {
 			uni.showToast({
@@ -528,7 +496,6 @@ const confirmWithdraw = async () => {
 			})
 		}
 	} catch (error) {
-		console.error('提现请求失败:', error)
 		uni.showToast({
 			title: '提现失败，请重试',
 			icon: 'error'
@@ -540,19 +507,17 @@ const confirmWithdraw = async () => {
 
 // 单独加载交易记录
 const loadTransactionRecords = async () => {
-	try {
-		const res = await request({
-			url: "/transaction/list?uid=" + userInfo.uid
-		})
-		
-		if (res.data && Array.isArray(res.data)) {
-			transactionRecords.value = res.data.sort((a, b) => 
-				new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
-			)
-		}
-	} catch (error) {
-		console.error('加载交易记录失败:', error)
+
+	const res = await request({
+		url: "/transaction/list?uid=" + userInfo.uid
+	})
+
+	if (res.data && Array.isArray(res.data)) {
+		transactionRecords.value = res.data.sort((a, b) =>
+			new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
+		)
 	}
+
 }
 </script>
 

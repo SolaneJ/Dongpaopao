@@ -217,7 +217,6 @@
 
 			return JSON.parse(fixedStr);
 		} catch (e) {
-			console.error('解析订单详情失败:', e, '原始字符串:', detailStr);
 			// 尝试更简单的手动解析
 			try {
 				const result = {};
@@ -231,10 +230,8 @@
 						result[key] = value;
 					}
 				}
-				console.log('手动解析结果:', result);
 				return result;
 			} catch (e2) {
-				console.error('手动解析也失败:', e2);
 				return {};
 			}
 		}
@@ -264,22 +261,11 @@
 				}
 			});
 
-			console.log('订单列表响应:', res);
-
 			if (res.data && Array.isArray(res.data)) {
 				// 处理订单数据，添加角色信息和解析详情
 				orders.value = res.data.map(order => {
 					const role = getOrderRole(order);
 					const detailObj = parseOrderDetail(order.detail);
-
-					console.log(`订单 ${order.oid}:`, {
-						role,
-						detail: order.detail,
-						parsedDetail: detailObj,
-						xdr: order.xdr,
-						jdr: order.jdr,
-						userInfoUid: userInfo.uid
-					});
 
 					return {
 						...order,
@@ -287,16 +273,12 @@
 						detailObj
 					};
 				});
-
-				console.log('处理后的订单列表:', orders.value);
 			} else {
 				orders.value = [];
-				console.warn('订单数据格式异常:', res);
 			}
 
 			loading.value = false;
 		} catch (error) {
-			console.error('加载订单失败:', error);
 			loading.value = false;
 			orders.value = [];
 		}
@@ -362,14 +344,6 @@
 
 	// 筛选订单
 	const filteredOrders = computed(() => {
-		console.log('开始筛选订单，总数:', orders.value.length);
-		console.log('当前筛选条件:', {
-			currentTab: currentTab.value,
-			filterStatus: filterStatus.value,
-			filterType: filterType.value,
-			filterRole: filterRole.value
-		});
-
 		let filtered = [...orders.value];
 
 		// 按顶部选项卡筛选（只在没有高级筛选时生效）
@@ -381,31 +355,22 @@
 				4: 'C'  // 已取消
 			};
 			const targetStatus = tabStatusMap[currentTab.value];
-			console.log('按选项卡筛选，目标状态:', targetStatus);
 			filtered = filtered.filter(order => order.status === targetStatus);
-			console.log('选项卡筛选后数量:', filtered.length);
 		}
 
 		// 按生效的高级筛选条件筛选
 		if (filterStatus.value) {
-			console.log('按状态筛选:', filterStatus.value);
 			filtered = filtered.filter(order => order.status === filterStatus.value);
-			console.log('状态筛选后数量:', filtered.length);
 		}
 
 		if (filterType.value) {
-			console.log('按类型筛选:', filterType.value);
 			filtered = filtered.filter(order => order.orderType === filterType.value);
-			console.log('类型筛选后数量:', filtered.length);
 		}
 
 		if (filterRole.value) {
-			console.log('按角色筛选:', filterRole.value);
 			filtered = filtered.filter(order => order.role === filterRole.value);
-			console.log('角色筛选后数量:', filtered.length);
 		}
 
-		console.log('最终筛选结果数量:', filtered.length);
 		return filtered;
 	});
 
