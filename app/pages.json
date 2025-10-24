@@ -38,7 +38,10 @@
 		},
 		{
 			"path": "pages/index/order"
-		}
+		},
+        {
+            "path": "pages/user/wallet"
+        }
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
