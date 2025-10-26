@@ -24,8 +24,6 @@ public class OSSConfig {
 
     @Bean
     public S3Client s3Client() {
-        System.out.println("OSS accessKey: " + accessKey);
-        System.out.println("OSS secretKey: " + secretKey);
         if (accessKey == null || accessKey.trim().isEmpty() || secretKey == null || secretKey.trim().isEmpty()) {
             throw new IllegalArgumentException("OSS access key and secret key must be configured and cannot be blank");
         }

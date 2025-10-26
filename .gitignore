@@ -14,3 +14,6 @@
 *.iml
 out
 gen
+
+# Log files
+logs/
