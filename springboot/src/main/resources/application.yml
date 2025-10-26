@@ -1,27 +1,31 @@
+# 共享配置 - 适用于所有环境
 server:
-  port: 8181
+  port: ${SERVER_PORT:8181}
   servlet:
-    context-path: /api
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH:/api}
   ssl:
-    certificate: classpath:cert.pem
-    certificate-private-key: classpath:key.pem
-    enabled: true
+    certificate: ${SERVER_SSL_CERTIFICATE:./certs/cert.pem}
+    certificate-private-key: ${SERVER_SSL_CERTIFICATE_PRIVATE_KEY:./certs/key.pem}
+    enabled: ${SERVER_SSL_ENABLED:true}
+
+# OSS配置，支持环境变量覆盖
+oss:
+  access-key: ${OSS_ACCESS_KEY:rustfsadmin}
+  secret-key: ${OSS_SECRET_KEY:rustfsadmin}
+  endpoint: ${OSS_ENDPOINT:http://localhost:9000}
+  region: ${OSS_REGION:cn-north-1}
+
+# 微信小程序配置
+weixin:
+  app-id: ${WECHAT_MINI_PROGRAM_APP_ID:}
+  app-secret: ${WECHAT_MINI_PROGRAM_APP_SECRET:}
+  api-base-url: ${WECHAT_API_BASE_URL:https://api.weixin.qq.com}
+  connect-timeout: 5000
+  read-timeout: 5000
 
 spring:
   application:
     name: dongpaopao
   profiles:
     active:
-#      - dev
-      - docker
-  datasource:
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  data:
-    redis:
-      port: 6379
-  ai:
-    ollama:
-      chat:
-        model: gemma3:4b
+      - ${SPRING_PROFILES_ACTIVE:dev}

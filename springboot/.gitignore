@@ -17,5 +17,35 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
+# 环境变量和敏感配置文件
+.env
+.env.local
+.env.*.local
+
+# 证书和密钥文件
 *.cert
 *.pem
+*.key
+*.jks
+
+# 日志文件
+logs/
+*.log
+
+# IDE相关文件
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 本地配置文件
+application-local.yml
+application-dev.yml
+application-prod.yml

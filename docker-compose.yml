@@ -8,14 +8,8 @@ services:
       - pao-db
       - pao-redis
       - pao-oss
-    environment:
-      # 微信小程序appId、appSecret
-      - WECHAT_MINI_PROGRAM_APP_ID=${WECHAT_MINI_PROGRAM_APP_ID}
-      - WECHAT_MINI_PROGRAM_APP_SECRET=${WECHAT_MINI_PROGRAM_APP_SECRET}
-      # OSS 访问地址
-      - OSS_ENDPOINT=http://pao-oss:9000/
-      # RustFS 服务器域名
-      - RUSTFS_SERVER_DOMAINS=http://pao-oss:9000/
+    volumes:
+      - ./certs:/certs
     container_name: backend
     networks:
       - pao-network
