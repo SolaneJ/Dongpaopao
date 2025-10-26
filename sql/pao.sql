@@ -127,3 +127,49 @@ create table transaction
         check (`amount` >= 0)
 )
     comment '交易记录表';
+
+-- 系统日志表
+CREATE TABLE `sys_log` (
+  `log_id` varchar(64) NOT NULL COMMENT '日志ID',
+  `user_id` varchar(64) DEFAULT NULL COMMENT '操作用户ID',
+  `user_name` varchar(100) DEFAULT NULL COMMENT '操作用户名称',
+  `operation_type` varchar(20) DEFAULT NULL COMMENT '操作类型：LOGIN(登录), LOGOUT(登出), CREATE(创建), UPDATE(更新), DELETE(删除), QUERY(查询), UPLOAD(上传), DOWNLOAD(下载)',
+  `module` varchar(100) DEFAULT NULL COMMENT '操作模块',
+  `description` varchar(255) DEFAULT NULL COMMENT '操作内容描述',
+  `request_url` varchar(255) DEFAULT NULL COMMENT '请求URL',
+  `request_method` varchar(10) DEFAULT NULL COMMENT '请求方法',
+  `request_params` text COMMENT '请求参数',
+  `result` varchar(10) DEFAULT NULL COMMENT '操作结果：SUCCESS(成功), FAILURE(失败)',
+  `error_info` text COMMENT '错误信息（如果操作失败）',
+  `ip` varchar(50) DEFAULT NULL COMMENT '操作IP地址',
+  `execution_time` bigint(20) DEFAULT NULL COMMENT '操作耗时（毫秒）',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`log_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_operation_type` (`operation_type`),
+  KEY `idx_module` (`module`),
+  KEY `idx_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统日志表';
+
+-- 添加索引以优化查询性能
+-- 这些索引已经在创建表时定义，如果需要额外索引可以在此添加
+-- ALTER TABLE `sys_log` ADD INDEX `idx_ip` (`ip`);
+-- ALTER TABLE `sys_log` ADD INDEX `idx_result` (`result`);
+
+-- 示例：添加分区以优化大表性能（可选）
+-- 当数据量很大时，可以考虑按时间分区
+-- ALTER TABLE `sys_log` PARTITION BY RANGE (TO_DAYS(create_time)) (
+--   PARTITION p202401 VALUES LESS THAN (TO_DAYS('2024-02-01')),
+--   PARTITION p202402 VALUES LESS THAN (TO_DAYS('2024-03-01')),
+--   PARTITION p202403 VALUES LESS THAN (TO_DAYS('2024-04-01')),
+--   PARTITION p202404 VALUES LESS THAN (TO_DAYS('2024-05-01')),
+--   PARTITION p202405 VALUES LESS THAN (TO_DAYS('2024-06-01')),
+--   PARTITION p202406 VALUES LESS THAN (TO_DAYS('2024-07-01')),
+--   PARTITION p202407 VALUES LESS THAN (TO_DAYS('2024-08-01')),
+--   PARTITION p202408 VALUES LESS THAN (TO_DAYS('2024-09-01')),
+--   PARTITION p202409 VALUES LESS THAN (TO_DAYS('2024-10-01')),
+--   PARTITION p202410 VALUES LESS THAN (TO_DAYS('2024-11-01')),
+--   PARTITION p202411 VALUES LESS THAN (TO_DAYS('2024-12-01')),
+--   PARTITION p202412 VALUES LESS THAN (TO_DAYS('2025-01-01')),
+--   PARTITION future VALUES LESS THAN MAXVALUE
+-- );
